@@ -1,70 +1,369 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+<!DOCTYPE html><html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Izis Live</title>
+  <title>LiveStar</title>
   <style>
+    *{margin:0;padding:0;box-sizing:border-box}
     body{
-      margin:0;
-      font-family:Arial,sans-serif;
-      background:#111;
+      font-family:Arial,Helvetica,sans-serif;
+      background:#0f0f12;
       color:#fff;
-      text-align:center;
+      display:flex;
+      justify-content:center;
+      padding:20px;
     }
-    .live{
-      width:90%;
-      max-width:400px;
-      margin:20px auto;
-      background:#222;
-      border-radius:16px;
-      padding:15px;
+    .app{
+      width:100%;
+      max-width:430px;
+      background:#17171c;
+      border-radius:28px;
+      overflow:hidden;
+      box-shadow:0 20px 60px rgba(0,0,0,.5);
+    }
+    .header{
+      padding:18px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:linear-gradient(90deg,#ff2d75,#7b2cff);
+    }
+    .logo{
+      font-size:26px;
+      font-weight:700;
+    }
+    .live-badge{
+      background:#ff003c;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
     }
     .video{
-      background:#444;
+      position:relative;
       height:300px;
-      border-radius:12px;
+      background:#24242d;
       display:flex;
       align-items:center;
       justify-content:center;
-      font-size:22px;
+      overflow:hidden;
     }
-    .coins{
-      margin:15px 0;
+    .video img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      opacity:.9;
+    }
+    .overlay{
+      position:absolute;
+      inset:0;
+      background:linear-gradient(to top,rgba(0,0,0,.6),rgba(0,0,0,.1));
+    }
+    .creator{
+      padding:16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .creator-info{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .avatar{
+      width:52px;
+      height:52px;
+      border-radius:50%;
+      background:#ff2d75;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+    }
+    .creator-name{
       font-size:18px;
+      font-weight:700;
     }
-    button{
-      margin:8px;
-      padding:12px 18px;
+    .meta{
+      color:#cfcfe6;
+      font-size:13px;
+    }
+    .follow{
+      background:#ff2d75;
+      color:#fff;
       border:none;
-      border-radius:10px;
-      background:#ff4da6;
-      color:white;
-      font-size:16px;
+      padding:10px 16px;
+      border-radius:999px;
+      font-weight:700;
       cursor:pointer;
     }
-    #gifts{
-      margin-top:15px;
+    .coins{
+      padding:16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .coin-box{
+      background:#232330;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px;
+      padding:12px 14px;
+      flex:1;
+      margin-right:10px;
+    }
+    .coin-value{
+      font-size:22px;
+      font-weight:700;
+      margin-top:4px;
+    }
+    .buy{
+      background:#7b2cff;
+      color:#fff;
+      border:none;
+      padding:12px 14px;
+      border-radius:14px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .gifts{
+      padding:16px;
+    }
+    .section-title{
+      font-size:16px;
+      font-weight:700;
+      margin-bottom:12px;
+    }
+    .gift-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+    }
+    .gift{
+      background:#222230;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      padding:14px;
+      text-align:center;
+      cursor:pointer;
+      transition:.2s;
+    }
+    .gift:hover{
+      transform:translateY(-2px);
+      border-color:#ff2d75;
+    }
+    .gift .emoji{
       font-size:28px;
-      min-height:40px;
+      display:block;
+      margin-bottom:6px;
+    }
+    .gift .price{
+      color:#cfcfe6;
+      font-size:12px;
+      margin-top:4px;
+    }
+    .chat{
+      padding:16px;
+      border-top:1px solid rgba(255,255,255,.08);
+    }
+    .chat-box{
+      background:#101018;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      padding:12px;
+      height:180px;
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .msg{
+      background:#1a1a26;
+      border-radius:14px;
+      padding:10px 12px;
+      font-size:14px;
+    }
+    .msg b{
+      color:#ff7bb5;
+    }
+    .input-row{
+      display:flex;
+      gap:10px;
+      margin-top:12px;
+    }
+    .input-row input{
+      flex:1;
+      background:#1a1a26;
+      border:1px solid rgba(255,255,255,.08);
+      color:#fff;
+      padding:12px 14px;
+      border-radius:14px;
+      outline:none;
+    }
+    .send{
+      background:#ff2d75;
+      border:none;
+      color:#fff;
+      padding:12px 16px;
+      border-radius:14px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .ranking{
+      padding:16px;
+      border-top:1px solid rgba(255,255,255,.08);
+    }
+    .rank-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:10px 0;
+      border-bottom:1px solid rgba(255,255,255,.05);
+      font-size:14px;
+    }
+    .rank-item:last-child{
+      border-bottom:none;
+    }
+    .bottom{
+      display:flex;
+      justify-content:space-around;
+      padding:14px;
+      background:#13131a;
+      border-top:1px solid rgba(255,255,255,.08);
+      color:#cfcfe6;
+      font-size:13px;
+    }
+    .nav-item{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+    }
+    .nav-item.active{
+      color:#ff2d75;
+      font-weight:700;
+    }
+    .floating{
+      position:fixed;
+      pointer-events:none;
+      font-size:32px;
+      animation:floatUp 1.8s linear forwards;
+    }
+    @keyframes floatUp{
+      from{transform:translateY(0) scale(1);opacity:1}
+      to{transform:translateY(-220px) scale(1.8);opacity:0}
     }
   </style>
 </head>
 <body>
-  <div class="live">
-    <h2>Izis Live</h2>
-    <div class="video">AO VIVO</div>
-    <div class="coins">Moedas: <span id="coins">100</span></div>
+  <div class="app">
+    <div class="header">
+      <div class="logo">LiveStar</div>
+      <div class="live-badge">AO VIVO</div>
+    </div><div class="video">
+  <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80" alt="Live">
+  <div class="overlay"></div>
+</div>
 
-    <button onclick="sendGift('❤️',10)">❤️ (10)</button>
-    <button onclick="sendGift('🌹',20)">🌹 (20)</button>
-    <button onclick="sendGift('🚀',50)">🚀 (50)</button>
-
-    <div id="gifts"></div>
+<div class="creator">
+  <div class="creator-info">
+    <div class="avatar">LS</div>
+    <div>
+      <div class="creator-name">Luna Star</div>
+      <div class="meta">12.431 espectadores • Nível 18</div>
+    </div>
   </div>
+  <button class="follow">Seguir</button>
+</div>
 
-  <script>
-    let coins = 100;
+<div class="coins">
+  <div class="coin-box">
+    <div>Saldo de moedas</div>
+    <div class="coin-value" id="coins">1250</div>
+  </div>
+  <button class="buy" id="buyBtn">Comprar</button>
+</div>
+
+<div class="gifts">
+  <div class="section-title">Presentes</div>
+  <div class="gift-grid">
+    <div class="gift" onclick="sendGift('❤️',10)">
+      <span class="emoji">❤️</span>
+      Coração
+      <div class="price">10 moedas</div>
+    </div>
+    <div class="gift" onclick="sendGift('🌹',25)">
+      <span class="emoji">🌹</span>
+      Rosa
+      <div class="price">25 moedas</div>
+    </div>
+    <div class="gift" onclick="sendGift('💎',80)">
+      <span class="emoji">💎</span>
+      Diamante
+      <div class="price">80 moedas</div>
+    </div>
+    <div class="gift" onclick="sendGift('👑',120)">
+      <span class="emoji">👑</span>
+      Coroa
+      <div class="price">120 moedas</div>
+    </div>
+    <div class="gift" onclick="sendGift('🚀',300)">
+      <span class="emoji">🚀</span>
+      Foguete
+      <div class="price">300 moedas</div>
+    </div>
+    <div class="gift" onclick="sendGift('🏰',1000)">
+      <span class="emoji">🏰</span>
+      Castelo
+      <div class="price">1000 moedas</div>
+    </div>
+  </div>
+</div>
+
+<div class="chat">
+  <div class="section-title">Chat ao vivo</div>
+  <div class="chat-box" id="chat">
+    <div class="msg"><b>Luna:</b> Boa noite, chat!</div>
+    <div class="msg"><b>Rafael:</b> Que transmissão incrível!</div>
+    <div class="msg"><b>Maya:</b> Mandando uma rosa 🌹</div>
+  </div>
+  <div class="input-row">
+    <input id="msgInput" placeholder="Escreva uma mensagem...">
+    <button class="send" onclick="sendMessage()">Enviar</button>
+  </div>
+</div>
+
+<div class="ranking">
+  <div class="section-title">Top apoiadores</div>
+  <div class="rank-item"><span>1. @kingvip</span><span>12.450</span></div>
+  <div class="rank-item"><span>2. @luna_gold</span><span>9.980</span></div>
+  <div class="rank-item"><span>3. @rafa_br</span><span>7.430</span></div>
+</div>
+
+<div class="bottom">
+  <div class="nav-item active">🏠 Início</div>
+  <div class="nav-item">🔍 Explorar</div>
+  <div class="nav-item">🎥 Ao Vivo</div>
+  <div class="nav-item">💬 Mensagens</div>
+  <div class="nav-item">👤 Perfil</div>
+</div>
+
+  </div>  <script>
+    let coins = 1250;
+
+    function updateCoins(){
+      document.getElementById('coins').textContent = coins;
+    }
+
+    function addChat(text){
+      const chat = document.getElementById('chat');
+      const div = document.createElement('div');
+      div.className = 'msg';
+      div.innerHTML = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
 
     function sendGift(emoji,cost){
       if(coins < cost){
@@ -72,9 +371,41 @@
         return;
       }
       coins -= cost;
-      document.getElementById('coins').textContent = coins;
-      document.getElementById('gifts').textContent += ' ' + emoji;
+      updateCoins();
+      addChat('<b>Você:</b> enviou ' + emoji);
+
+      const f = document.createElement('div');
+      f.className = 'floating';
+      f.textContent = emoji;
+      f.style.left = (window.innerWidth/2 - 10 + Math.random()*80 - 40) + 'px';
+      f.style.top = (window.innerHeight - 120) + 'px';
+      document.body.appendChild(f);
+      setTimeout(()=>f.remove(),1800);
     }
-  </script>
-</body>
-</html>
+
+    function sendMessage(){
+      const input = document.getElementById('msgInput');
+      const value = input.value.trim();
+      if(!value) return;
+      addChat('<b>Você:</b> ' + value);
+      input.value = '';
+    }
+
+    document.getElementById('msgInput').addEventListener('keydown',function(e){
+      if(e.key==='Enter') sendMessage();
+    });
+
+    document.getElementById('buyBtn').addEventListener('click',function(){
+      coins += 500;
+      updateCoins();
+      addChat('<b>Sistema:</b> você recebeu +500 moedas');
+    });
+
+    setInterval(()=>{
+      const viewers = document.querySelector('.meta');
+      const base = 12431;
+      const value = base + Math.floor(Math.random()*120 - 60);
+      viewers.textContent = value.toLocaleString('pt-BR') + ' espectadores • Nível 18';
+    },3000);
+  </script></body>
+  </html>
