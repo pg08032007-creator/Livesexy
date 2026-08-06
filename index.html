@@ -1,411 +1,834 @@
-<!DOCTYPE html><html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LiveStar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pijama Party - Live Streaming +18</title>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{
-      font-family:Arial,Helvetica,sans-serif;
-      background:#0f0f12;
-      color:#fff;
-      display:flex;
-      justify-content:center;
-      padding:20px;
+    /* ================= ESTILOS GERAIS ================= */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
-    .app{
-      width:100%;
-      max-width:430px;
-      background:#17171c;
-      border-radius:28px;
-      overflow:hidden;
-      box-shadow:0 20px 60px rgba(0,0,0,.5);
+
+    body {
+  background-color: #09090d;
+  background: linear-gradient(rgba(9, 9, 13, 0.75), rgba(9, 9, 13, 0.85)), 
+              url('paper.jpg') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  padding: 10px;
+}
+
+
+    /* ================= TELA 1: LOGIN / REGISTRO ================= */
+    .welcome-card {
+      background: rgba(20, 20, 28, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 35px 25px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
     }
-    .header{
-      padding:18px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      background:linear-gradient(90deg,#ff2d75,#7b2cff);
+
+    .app-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
     }
-    .logo{
-      font-size:26px;
-      font-weight:700;
+
+    .app-title span {
+      color: #e50914;
     }
-    .live-badge{
-      background:#ff003c;
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:700;
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #a0a0b0;
+      margin-bottom: 25px;
     }
-    .video{
-      position:relative;
-      height:300px;
-      background:#24242d;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
+
+    /* Ocultar Etapas Inativas */
+    .step {
+      display: none;
     }
-    .video img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      opacity:.9;
+
+    .step.active {
+      display: block;
     }
-    .overlay{
-      position:absolute;
-      inset:0;
-      background:linear-gradient(to top,rgba(0,0,0,.6),rgba(0,0,0,.1));
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
-    .creator{
-      padding:16px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      border-bottom:1px solid rgba(255,255,255,.08);
+
+    .input-group {
+      text-align: left;
     }
-    .creator-info{
-      display:flex;
-      align-items:center;
-      gap:12px;
+
+    .input-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: #cccccc;
+      margin-bottom: 6px;
+      margin-left: 8px;
     }
-    .avatar{
-      width:52px;
-      height:52px;
-      border-radius:50%;
-      background:#ff2d75;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight:700;
+
+    .input-group input, 
+    .input-group select {
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 30px;
+      border: 1px solid #2a2a3a;
+      background-color: #12121a;
+      color: #ffffff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
     }
-    .creator-name{
-      font-size:18px;
-      font-weight:700;
+
+    .input-group select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 15px center;
     }
-    .meta{
-      color:#cfcfe6;
-      font-size:13px;
+
+    .input-group input:focus,
+    .input-group select:focus {
+      border-color: #e50914;
     }
-    .follow{
-      background:#ff2d75;
-      color:#fff;
-      border:none;
-      padding:10px 16px;
-      border-radius:999px;
-      font-weight:700;
-      cursor:pointer;
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      font-size: 0.8rem;
+      color: #dddddd;
+      margin: 5px 0;
+      cursor: pointer;
     }
-    .coins{
-      padding:16px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      border-bottom:1px solid rgba(255,255,255,.08);
+
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #e50914;
+      cursor: pointer;
     }
-    .coin-box{
-      background:#232330;
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:16px;
-      padding:12px 14px;
-      flex:1;
-      margin-right:10px;
+
+    .age-badge {
+      background-color: #e50914;
+      color: #fff;
+      font-weight: bold;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 0.75rem;
     }
-    .coin-value{
-      font-size:22px;
-      font-weight:700;
-      margin-top:4px;
+
+    .btn {
+      width: 100%;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform 0.1s, background-color 0.2s;
     }
-    .buy{
-      background:#7b2cff;
-      color:#fff;
-      border:none;
-      padding:12px 14px;
-      border-radius:14px;
-      cursor:pointer;
-      font-weight:700;
+
+    .btn:active {
+      transform: scale(0.98);
     }
-    .gifts{
-      padding:16px;
+
+    .btn-primary {
+      background-color: #e50914;
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
     }
-    .section-title{
-      font-size:16px;
-      font-weight:700;
-      margin-bottom:12px;
+
+    .btn-secondary {
+      background-color: transparent;
+      color: #888899;
+      font-size: 0.85rem;
+      padding: 8px;
     }
-    .gift-grid{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:10px;
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      color: #666677;
+      font-size: 0.8rem;
     }
-    .gift{
-      background:#222230;
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:18px;
-      padding:14px;
-      text-align:center;
-      cursor:pointer;
-      transition:.2s;
+
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background-color: #2a2a3a;
     }
-    .gift:hover{
-      transform:translateY(-2px);
-      border-color:#ff2d75;
+
+    .divider span {
+      padding: 0 10px;
     }
-    .gift .emoji{
-      font-size:28px;
-      display:block;
-      margin-bottom:6px;
+
+    .btn-anonymous {
+      background-color: #1a1a26;
+      border: 1px solid #2a2a3d;
+      color: #dddddd;
     }
-    .gift .price{
-      color:#cfcfe6;
-      font-size:12px;
-      margin-top:4px;
+
+    .mask-icon {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
     }
-    .chat{
-      padding:16px;
-      border-top:1px solid rgba(255,255,255,.08);
+
+    /* ================= TELA 2: INTERFACE DO APP (FEED) ================= */
+    .app-screen {
+      display: none; /* Escondido por padrão */
+      width: 100%;
+      justify-content: center;
     }
-    .chat-box{
-      background:#101018;
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:18px;
-      padding:12px;
-      height:180px;
-      overflow:auto;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
+
+    .app-screen.active {
+      display: flex;
     }
-    .msg{
-      background:#1a1a26;
-      border-radius:14px;
-      padding:10px 12px;
-      font-size:14px;
+
+    .app-container {
+      width: 100%;
+      max-width: 430px;
+      background-color: #121218;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-bottom: 80px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.9);
+      border-radius: 16px;
+      overflow: hidden;
     }
-    .msg b{
-      color:#ff7bb5;
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px 10px 20px;
+      background-color: #121218;
     }
-    .input-row{
-      display:flex;
-      gap:10px;
-      margin-top:12px;
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
     }
-    .input-row input{
-      flex:1;
-      background:#1a1a26;
-      border:1px solid rgba(255,255,255,.08);
-      color:#fff;
-      padding:12px 14px;
-      border-radius:14px;
-      outline:none;
+
+    .icon-btn {
+      background: #1f1f2e;
+      border: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
     }
-    .send{
-      background:#ff2d75;
-      border:none;
-      color:#fff;
-      padding:12px 16px;
-      border-radius:14px;
-      cursor:pointer;
-      font-weight:700;
+
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
     }
-    .ranking{
-      padding:16px;
-      border-top:1px solid rgba(255,255,255,.08);
+
+    /* Carrossel */
+    .stories-container {
+      display: flex;
+      gap: 15px;
+      overflow-x: auto;
+      padding: 15px 20px;
+      scrollbar-width: none;
     }
-    .rank-item{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:10px 0;
-      border-bottom:1px solid rgba(255,255,255,.05);
-      font-size:14px;
+
+    .stories-container::-webkit-scrollbar {
+      display: none;
     }
-    .rank-item:last-child{
-      border-bottom:none;
+
+    .story-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
     }
-    .bottom{
-      display:flex;
-      justify-content:space-around;
-      padding:14px;
-      background:#13131a;
-      border-top:1px solid rgba(255,255,255,.08);
-      color:#cfcfe6;
-      font-size:13px;
+
+    .avatar-wrapper {
+      position: relative;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      padding: 3px;
+      background: linear-gradient(45deg, #e50914, #ff4757);
     }
-    .nav-item{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:6px;
+
+    .avatar-wrapper video {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      background-color: #000;
     }
-    .nav-item.active{
-      color:#ff2d75;
-      font-weight:700;
+
+    .badge-live-mini {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background: #e50914;
+      color: #fff;
+      font-size: 0.55rem;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 10px;
+      border: 2px solid #121218;
     }
-    .floating{
-      position:fixed;
-      pointer-events:none;
-      font-size:32px;
-      animation:floatUp 1.8s linear forwards;
+
+    .story-name {
+      font-size: 0.75rem;
+      color: #cccccc;
+      max-width: 65px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    @keyframes floatUp{
-      from{transform:translateY(0) scale(1);opacity:1}
-      to{transform:translateY(-220px) scale(1.8);opacity:0}
+
+    /* Categorias */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px 10px 20px;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .view-all {
+      font-size: 0.8rem;
+      color: #e50914;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .categories-bar {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 0 20px 15px 20px;
+      scrollbar-width: none;
+    }
+
+    .categories-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .category-chip {
+      background-color: #1f1f2e;
+      color: #a0a0b0;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+      border: none;
+    }
+
+    .category-chip.active {
+      background-color: #e50914;
+      color: #ffffff;
+    }
+
+    /* Grid de Lives Reais */
+    .lives-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      padding: 0 20px;
+    }
+
+    .no-lives-msg {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px 20px;
+      color: #888899;
+      font-size: 0.85rem;
+      background-color: #181822;
+      border-radius: 16px;
+      border: 1px dashed #2a2a3d;
+      line-height: 1.5;
+    }
+
+    .live-card {
+      background-color: #191924;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-thumb {
+      position: relative;
+      width: 100%;
+      height: 190px;
+      background-color: #000000;
+    }
+
+    .card-thumb video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .thumb-badge-top {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      z-index: 2;
+    }
+
+    .viewers-count {
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+
+    .badge-live {
+      background-color: #e50914;
+      color: white;
+      font-size: 0.6rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 12px;
+    }
+
+    .stream-title {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      z-index: 2;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+
+    .card-footer {
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .streamer-avatar-placeholder {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: #e50914;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.8rem;
+    }
+
+    .streamer-info {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .streamer-name {
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .streamer-status {
+      font-size: 0.65rem;
+      color: #888899;
+    }
+
+    /* Navbar Inferior Fixa */
+    .navbar {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      max-width: 430px;
+      background-color: #121218;
+      border-top: 1px solid #1f1f2e;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      height: 65px;
+      z-index: 10;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #666677;
+      text-decoration: none;
+      font-size: 0.65rem;
+      gap: 3px;
+    }
+
+    .nav-item.active {
+      color: #e50914;
+    }
+
+    .nav-item svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
+
+    .fab-btn {
+      background: linear-gradient(135deg, #e50914, #b00710);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(229, 9, 20, 0.5);
+      margin-top: -25px;
+      cursor: pointer;
+    }
+
+    .fab-btn.broadcasting {
+      background: #2ed573;
+      box-shadow: 0 4px 15px rgba(46, 213, 115, 0.5);
+    }
+
+    .fab-btn svg {
+      width: 26px;
+      height: 26px;
+      fill: currentColor;
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <div class="header">
-      <div class="logo">LiveStar</div>
-      <div class="live-badge">AO VIVO</div>
-    </div><div class="video">
-  <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80" alt="Live">
-  <div class="overlay"></div>
-</div>
 
-<div class="creator">
-  <div class="creator-info">
-    <div class="avatar">LS</div>
-    <div>
-      <div class="creator-name">Luna Star</div>
-      <div class="meta">12.431 espectadores • Nível 18</div>
+  <!-- ================= TELA DE LOGIN / REGISTRO ================= -->
+  <div class="welcome-card" id="authScreen">
+    <h1 class="app-title">PIJAMA <span>PARTY</span></h1>
+    <p class="subtitle" id="cardSubtitle">Assista ou transmita em tempo real</p>
+
+    <!-- ETAPA 1: E-mail ou Anônimo -->
+    <div class="step active" id="step1">
+      <form class="auth-form" id="emailForm">
+        <div class="input-group">
+          <label for="email">Entrar com e-mail</label>
+          <input type="email" id="email" placeholder="seu@email.com" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Continuar com E-mail</button>
+      </form>
+
+      <div class="divider">
+        <span>OU</span>
+      </div>
+
+      <button type="button" class="btn btn-anonymous" id="btnAnon">
+        <svg class="mask-icon" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12c0 3.5 2.1 6.5 5.1 7.8l.9-1.8C5.8 17 4 14.7 4 12c0-4.4 3.6-8 8-8s8 3.6 8 8c0 2.7-1.8 5-4 6l.9 1.8c3-1.3 5.1-4.3 5.1-7.8 0-5.52-4.48-10-10-10zm-3.5 8c-1.38 0-2.5 1.12-2.5 2.5S7.12 15 8.5 15s2.5-1.12 2.5-2.5S9.88 10 8.5 10zm7 0c-1.38 0-2.5 1.12-2.5 2.5s1.12 2.5 2.5 2.5 2.5-1.12 2.5-2.5-1.12-2.5-2.5-2.5z"/>
+        </svg>
+        Entrar como Anônimo
+      </button>
+    </div>
+
+    <!-- ETAPA 2: Dados +18 -->
+    <div class="step" id="step2">
+      <form class="auth-form" id="registerForm">
+        <div class="input-group">
+          <label for="username">Nome de Usuário</label>
+          <input type="text" id="username" placeholder="@seu.nome" required>
+        </div>
+
+        <div class="input-group">
+          <label for="gender">Gênero</label>
+          <select id="gender" required>
+            <option value="" disabled selected>Selecione seu gênero</option>
+            <option value="Feminino">Feminino</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Outro">Outro / Prefiro não dizer</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label for="password">Senha</label>
+          <input type="password" id="password" placeholder="••••••••" required minlength="6">
+        </div>
+
+        <label class="checkbox-group">
+          <input type="checkbox" id="ageCheck" required>
+          <span>Confirmar que tenho <span class="age-badge">+18</span> anos.</span>
+        </label>
+
+        <button type="submit" class="btn btn-primary">Entrar no App 🎈</button>
+        <button type="button" class="btn btn-secondary" id="btnBack">← Voltar</button>
+      </form>
     </div>
   </div>
-  <button class="follow">Seguir</button>
-</div>
 
-<div class="coins">
-  <div class="coin-box">
-    <div>Saldo de moedas</div>
-    <div class="coin-value" id="coins">1250</div>
+
+  <!-- ================= TELA DA INTERFACE (FEED) ================= -->
+  <div class="app-screen" id="appScreen">
+    <div class="app-container">
+
+      <!-- Header -->
+      <div class="header">
+        <div class="app-title" style="font-size: 1.3rem;">PIJAMA<span>PARTY</span></div>
+        <div class="header-actions">
+          <button class="icon-btn">
+            <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          </button>
+          <button class="icon-btn">
+            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Carrossel de Perfis Transmitindo -->
+      <div class="stories-container" id="storiesContainer">
+        <!-- Preenchido dinamicamente quando uma live inicia -->
+      </div>
+
+      <!-- Categorias -->
+      <div class="section-header">
+        <span class="section-title">Categorias</span>
+        <a href="#" class="view-all">Ver tudo</a>
+      </div>
+
+      <div class="categories-bar">
+        <button class="category-chip active">🔥 Em Alta</button>
+        <button class="category-chip">💋 Privado 1v1</button>
+        <button class="category-chip">🌙 Pijama Room</button>
+        <button class="category-chip">⭐ Criadores VIP</button>
+      </div>
+
+      <!-- Grid de Lives Reais -->
+      <div class="lives-grid" id="livesGrid">
+        <div class="no-lives-msg" id="noLivesMsg">
+          Nenhuma live acontecendo agora.<br>Clique no botão <strong>+</strong> abaixo para iniciar a primeira!
+        </div>
+      </div>
+
+      <!-- Navbar Inferior -->
+      <div class="navbar">
+        <a href="#" class="nav-item active">
+          <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          <span>Início</span>
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+          <span>Em Alta</span>
+        </a>
+
+        <!-- Botão Central: Iniciar Transmissão Real -->
+        <button class="fab-btn" id="startLiveBtn" title="Iniciar Live">
+          <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        </button>
+
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+          <span>Chats</span>
+        </a>
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          <span id="navProfileName">Perfil</span>
+        </a>
+      </div>
+
+    </div>
   </div>
-  <button class="buy" id="buyBtn">Comprar</button>
-</div>
 
-<div class="gifts">
-  <div class="section-title">Presentes</div>
-  <div class="gift-grid">
-    <div class="gift" onclick="sendGift('❤️',10)">
-      <span class="emoji">❤️</span>
-      Coração
-      <div class="price">10 moedas</div>
-    </div>
-    <div class="gift" onclick="sendGift('🌹',25)">
-      <span class="emoji">🌹</span>
-      Rosa
-      <div class="price">25 moedas</div>
-    </div>
-    <div class="gift" onclick="sendGift('💎',80)">
-      <span class="emoji">💎</span>
-      Diamante
-      <div class="price">80 moedas</div>
-    </div>
-    <div class="gift" onclick="sendGift('👑',120)">
-      <span class="emoji">👑</span>
-      Coroa
-      <div class="price">120 moedas</div>
-    </div>
-    <div class="gift" onclick="sendGift('🚀',300)">
-      <span class="emoji">🚀</span>
-      Foguete
-      <div class="price">300 moedas</div>
-    </div>
-    <div class="gift" onclick="sendGift('🏰',1000)">
-      <span class="emoji">🏰</span>
-      Castelo
-      <div class="price">1000 moedas</div>
-    </div>
-  </div>
-</div>
+  <!-- LÓGICA JAVASCRIPT -->
+  <script>
+    let currentUser = {
+      username: 'Anônimo',
+      isAnon: true
+    };
 
-<div class="chat">
-  <div class="section-title">Chat ao vivo</div>
-  <div class="chat-box" id="chat">
-    <div class="msg"><b>Luna:</b> Boa noite, chat!</div>
-    <div class="msg"><b>Rafael:</b> Que transmissão incrível!</div>
-    <div class="msg"><b>Maya:</b> Mandando uma rosa 🌹</div>
-  </div>
-  <div class="input-row">
-    <input id="msgInput" placeholder="Escreva uma mensagem...">
-    <button class="send" onclick="sendMessage()">Enviar</button>
-  </div>
-</div>
+    let mediaStream = null;
+    let isBroadcasting = false;
 
-<div class="ranking">
-  <div class="section-title">Top apoiadores</div>
-  <div class="rank-item"><span>1. @kingvip</span><span>12.450</span></div>
-  <div class="rank-item"><span>2. @luna_gold</span><span>9.980</span></div>
-  <div class="rank-item"><span>3. @rafa_br</span><span>7.430</span></div>
-</div>
+    // Elementos da Interface
+    const authScreen = document.getElementById('authScreen');
+    const appScreen = document.getElementById('appScreen');
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const cardSubtitle = document.getElementById('cardSubtitle');
 
-<div class="bottom">
-  <div class="nav-item active">🏠 Início</div>
-  <div class="nav-item">🔍 Explorar</div>
-  <div class="nav-item">🎥 Ao Vivo</div>
-  <div class="nav-item">💬 Mensagens</div>
-  <div class="nav-item">👤 Perfil</div>
-</div>
+    // Navegação Etapa 1 -> Etapa 2
+    document.getElementById('emailForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      step1.classList.remove('active');
+      step2.classList.add('active');
+      cardSubtitle.textContent = "Complete seu perfil para continuar";
+    });
 
-  </div>  <script>
-    let coins = 1250;
+    document.getElementById('btnBack').addEventListener('click', () => {
+      step2.classList.remove('active');
+      step1.classList.add('active');
+      cardSubtitle.textContent = "Assista ou transmita em tempo real";
+    });
 
-    function updateCoins(){
-      document.getElementById('coins').textContent = coins;
-    }
+    // Cadastro
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const userVal = document.getElementById('username').value.trim();
+      const ageCheck = document.getElementById('ageCheck').checked;
 
-    function addChat(text){
-      const chat = document.getElementById('chat');
-      const div = document.createElement('div');
-      div.className = 'msg';
-      div.innerHTML = text;
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
-    }
-
-    function sendGift(emoji,cost){
-      if(coins < cost){
-        alert('Moedas insuficientes!');
+      if (!ageCheck) {
+        alert("É necessário confirmar que você é maior de 18 anos.");
         return;
       }
-      coins -= cost;
-      updateCoins();
-      addChat('<b>Você:</b> enviou ' + emoji);
 
-      const f = document.createElement('div');
-      f.className = 'floating';
-      f.textContent = emoji;
-      f.style.left = (window.innerWidth/2 - 10 + Math.random()*80 - 40) + 'px';
-      f.style.top = (window.innerHeight - 120) + 'px';
-      document.body.appendChild(f);
-      setTimeout(()=>f.remove(),1800);
-    }
-
-    function sendMessage(){
-      const input = document.getElementById('msgInput');
-      const value = input.value.trim();
-      if(!value) return;
-      addChat('<b>Você:</b> ' + value);
-      input.value = '';
-    }
-
-    document.getElementById('msgInput').addEventListener('keydown',function(e){
-      if(e.key==='Enter') sendMessage();
+      currentUser.username = userVal.startsWith('@') ? userVal : `@${userVal}`;
+      currentUser.isAnon = false;
+      enterApp();
     });
 
-    document.getElementById('buyBtn').addEventListener('click',function(){
-      coins += 500;
-      updateCoins();
-      addChat('<b>Sistema:</b> você recebeu +500 moedas');
+    // Anônimo
+    document.getElementById('btnAnon').addEventListener('click', () => {
+      currentUser.username = '@Anonimo_' + Math.floor(1000 + Math.random() * 9000);
+      currentUser.isAnon = true;
+      enterApp();
     });
 
-    setInterval(()=>{
-      const viewers = document.querySelector('.meta');
-      const base = 12431;
-      const value = base + Math.floor(Math.random()*120 - 60);
-      viewers.textContent = value.toLocaleString('pt-BR') + ' espectadores • Nível 18';
-    },3000);
-  </script></body>
-  </html>
+    function enterApp() {
+      authScreen.style.display = 'none';
+      appScreen.classList.add('active');
+      document.getElementById('navProfileName').textContent = currentUser.username;
+    }
+
+    // Câmera ao vivo
+    const startLiveBtn = document.getElementById('startLiveBtn');
+    const livesGrid = document.getElementById('livesGrid');
+    const storiesContainer = document.getElementById('storiesContainer');
+
+    startLiveBtn.addEventListener('click', async () => {
+      if (!isBroadcasting) {
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          isBroadcasting = true;
+          
+          startLiveBtn.classList.add('broadcasting');
+          startLiveBtn.title = "Encerrar Live";
+
+          createLiveCard();
+        } catch (err) {
+          alert('Permissão de câmera negada ou indisponível: ' + err.message);
+        }
+      } else {
+        if (mediaStream) {
+          mediaStream.getTracks().forEach(track => track.stop());
+        }
+        isBroadcasting = false;
+        startLiveBtn.classList.remove('broadcasting');
+        startLiveBtn.title = "Iniciar Live";
+
+        removeLiveCard();
+      }
+    });
+
+    function createLiveCard() {
+      const noLivesMsg = document.getElementById('noLivesMsg');
+      if (noLivesMsg) noLivesMsg.style.display = 'none';
+
+      // Criar Card
+      const card = document.createElement('div');
+      card.className = 'live-card';
+      card.id = 'myLiveCard';
+
+      card.innerHTML = `
+        <div class="card-thumb">
+          <div class="thumb-badge-top">
+            <span class="viewers-count">👁️ 1 (Você)</span>
+            <span class="badge-live">AO VIVO</span>
+          </div>
+          <video id="liveVideoFeed" autoplay playsinline muted></video>
+          <div class="stream-title">Transmissão Ao Vivo</div>
+        </div>
+        <div class="card-footer">
+          <div class="streamer-avatar-placeholder">${currentUser.username.charAt(1).toUpperCase()}</div>
+          <div class="streamer-info">
+            <div class="streamer-name">${currentUser.username}</div>
+            <div class="streamer-status">Transmitindo agora</div>
+          </div>
+        </div>
+      `;
+
+      livesGrid.prepend(card);
+
+      const videoElem = document.getElementById('liveVideoFeed');
+      videoElem.srcObject = mediaStream;
+
+      // Criar Story no Carrossel Superior
+      const story = document.createElement('div');
+      story.className = 'story-item';
+      story.id = 'myLiveStory';
+      story.innerHTML = `
+        <div class="avatar-wrapper">
+          <span class="badge-live-mini">LIVE</span>
+          <video id="storyVideoFeed" autoplay playsinline muted></video>
+        </div>
+        <span class="story-name">${currentUser.username}</span>
+      `;
+      storiesContainer.prepend(story);
+
+      const storyVideoElem = document.getElementById('storyVideoFeed');
+      storyVideoElem.srcObject = mediaStream;
+    }
+
+    function removeLiveCard() {
+      const card = document.getElementById('myLiveCard');
+      const story = document.getElementById('myLiveStory');
+      if (card) card.remove();
+      if (story) story.remove();
+
+      if (livesGrid.children.length === 1 && document.getElementById('noLivesMsg')) {
+        document.getElementById('noLivesMsg').style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>
