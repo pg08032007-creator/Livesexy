@@ -303,12 +303,18 @@
       background: linear-gradient(45deg, #f39c12, #f1c40f);
     }
 
-    .avatar-wrapper video {
+    .avatar-thumb-static {
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      object-fit: cover;
-      background-color: #000;
+      background: #2a2a3d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: #ffffff;
+      border: 2px solid #121218;
     }
 
     .badge-live-mini {
@@ -423,17 +429,33 @@
       position: relative;
     }
 
-    .card-thumb {
+    /* Frame de Capa Estática */
+    .card-thumb-frame {
       position: relative;
       width: 100%;
       height: 190px;
-      background-color: #000000;
+      background: linear-gradient(135deg, #1e1e2e, #12121a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .card-thumb video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+    .play-overlay-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(229, 9, 20, 0.85);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      transition: transform 0.2s;
+    }
+
+    .live-card:hover .play-overlay-icon {
+      transform: scale(1.1);
     }
 
     .thumb-badge-top {
@@ -622,7 +644,7 @@
       z-index: 1;
     }
 
-    /* Overlay Estilo Imagem Enviada */
+    /* Overlay Estilo TikTok */
     .tiktok-overlay {
       position: relative;
       z-index: 2;
@@ -639,7 +661,7 @@
       pointer-events: auto;
     }
 
-    /* Top Bar Estilo Imagem */
+    /* Top Bar Estilo App */
     .live-top-bar {
       display: flex;
       align-items: center;
@@ -693,24 +715,38 @@
       margin-left: 4px;
     }
 
+    /* Botão Encerrar Live para o Streamer */
+    .btn-end-live {
+      background: #e50914;
+      color: #ffffff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 2px 10px rgba(229, 9, 20, 0.4);
+      transition: background-color 0.2s;
+    }
+
+    .btn-end-live:hover {
+      background: #b00710;
+    }
+
     .live-status-pill {
       display: flex;
       align-items: center;
-      gap: 6px;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(12px);
-      padding: 6px 12px;
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 0.75rem;
-      font-weight: 700;
+      gap: 8px;
     }
 
     .live-badge-red {
       background: #e50914;
       color: #fff;
       font-size: 0.65rem;
-      padding: 2px 6px;
+      padding: 3px 8px;
       border-radius: 10px;
       font-weight: 800;
       letter-spacing: 0.5px;
@@ -1013,7 +1049,7 @@
   <div class="app-screen" id="appScreen">
     <div class="app-container">
 
-      <!-- ABA 1: FEED INICIAL (GRID E CARROSSEL) -->
+      <!-- ABA 1: FEED INICIAL (GRID E CARROSSEL COM CAPAS ESTÁTICAS) -->
       <div class="tab-content active" id="tabHome">
         <div class="header">
           <div class="app-title" style="font-size: 1.3rem;">PIJAMA<span>PARTY</span></div>
@@ -1027,7 +1063,7 @@
         <!-- Carrossel Stories -->
         <div class="stories-container" id="storiesContainer"></div>
 
-        <!-- Categorias com Ícones Profissionais -->
+        <!-- Categorias -->
         <div class="section-header">
           <span class="section-title">Categorias</span>
           <a href="#" class="view-all">Ver tudo</a>
@@ -1048,7 +1084,7 @@
           </button>
         </div>
 
-        <!-- Grid de Lives -->
+        <!-- Grid de Lives com Capa Estática (Sem auto-play acumulado) -->
         <div class="lives-grid" id="livesGrid">
           <div class="no-lives-msg" id="noLivesMsg">
             Nenhuma live acontecendo agora.<br>Clique no botão <strong>+</strong> abaixo para iniciar a primeira!
@@ -1056,7 +1092,7 @@
         </div>
       </div>
 
-      <!-- ABA 2: EM ALTA (ESTILO TIKTOK COM ARRASTE VERTICAL) -->
+      <!-- ABA 2: EM ALTA (ESTILO TIKTOK COM ARRASTE VERTICAL E STREAMING ATIVO) -->
       <div class="tab-content" id="tabTrending" style="padding-bottom: 0;">
         <div class="tiktok-container" id="tiktokContainer">
           <div class="no-lives-msg" id="noTrendingMsg" style="margin: 100px 20px;">
@@ -1145,7 +1181,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL COMPRA DE TICKET ================= -->
+  <!-- ================= MODAL COMPRA DE TICKET (APENAS PARA ESPECTADORES) ================= -->
   <div class="modal-overlay" id="ticketPurchaseModal">
     <div class="modal-card" style="text-align: center;">
       <div style="color: #f39c12; margin-bottom: 12px;">
@@ -1190,7 +1226,9 @@
     const svgIcons = {
       eye: `<svg class="icon-svg" width="12" height="12" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`,
       lock: `<svg class="icon-svg" width="12" height="12" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>`,
-      ticket: `<svg class="icon-svg" width="12" height="12" viewBox="0 0 24 24"><path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-1.99 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-2-1.46c-1.19.69-2 1.99-2 3.46s.81 2.77 2 3.46V18H4v-2.54c1.19-.69 2-1.99 2-3.46s-.81-2.77-2-3.46V6h16v2.54z"/></svg>`
+      ticket: `<svg class="icon-svg" width="12" height="12" viewBox="0 0 24 24"><path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-1.99 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-2-1.46c-1.19.69-2 1.99-2 3.46s.81 2.77 2 3.46V18H4v-2.54c1.19-.69 2-1.99 2-3.46s-.81-2.77-2-3.46V6h16v2.54z"/></svg>`,
+      play: `<svg class="icon-svg" width="22" height="22" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`,
+      power: `<svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>`
     };
 
     // Elementos Auth
@@ -1311,30 +1349,35 @@
       if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
       isBroadcasting = false;
       startLiveBtn.classList.remove('broadcasting');
+      startLiveBtn.title = "Iniciar Live";
       
-      // Remover elementos
+      // Remover elementos das telas
       document.querySelectorAll('#myLiveCard, #myLiveStory, #myTikTokSlide').forEach(el => el.remove());
 
       checkEmptyStates();
     }
 
-    // Renderizar Live Real nas Interfaces
+    // Renderizar Live nas Interfaces
     function renderActiveLive() {
       document.getElementById('noLivesMsg').style.display = 'none';
       document.getElementById('noTrendingMsg').style.display = 'none';
 
-      // 1. Render Card no Feed
+      const isHost = isBroadcasting; // Se o usuário logado criou a live, ele é o streamer (host)
+
+      // 1. Capa Estática com Frame no Feed Inicial (NÃO toca o vídeo automaticamente)
       const livesGrid = document.getElementById('livesGrid');
       const card = document.createElement('div');
       card.className = 'live-card';
       card.id = 'myLiveCard';
       card.innerHTML = `
-        <div class="card-thumb">
+        <div class="card-thumb-frame">
           <div class="thumb-badge-top">
             <span class="viewers-count">${svgIcons.eye} 1</span>
             ${currentLiveConfig.isPrivate ? `<span class="badge-ticket">${svgIcons.lock} ${currentLiveConfig.ticketPrice}</span>` : `<span class="badge-live">AO VIVO</span>`}
           </div>
-          <video id="liveVideoFeedCard" autoplay playsinline muted></video>
+          <div class="play-overlay-icon">
+            ${svgIcons.play}
+          </div>
           <div class="stream-title">${currentLiveConfig.title}</div>
         </div>
         <div class="card-footer">
@@ -1346,11 +1389,11 @@
         </div>
       `;
       
+      // Ao clicar na capa, abre o player de rolagem em tempo real
       card.addEventListener('click', () => navBtnTrending.click());
       livesGrid.prepend(card);
-      document.getElementById('liveVideoFeedCard').srcObject = mediaStream;
 
-      // 2. Render Story Topo
+      // 2. Render Story Topo (Capa Estática com Avatar)
       const storiesContainer = document.getElementById('storiesContainer');
       const story = document.createElement('div');
       story.className = 'story-item';
@@ -1358,25 +1401,27 @@
       story.innerHTML = `
         <div class="avatar-wrapper ${currentLiveConfig.isPrivate ? 'private-live' : ''}">
           <span class="badge-live-mini ${currentLiveConfig.isPrivate ? 'private' : ''}">${currentLiveConfig.isPrivate ? svgIcons.lock : 'LIVE'}</span>
-          <video id="storyVideoFeed" autoplay playsinline muted></video>
+          <div class="avatar-thumb-static">${currentUser.username.charAt(1).toUpperCase()}</div>
         </div>
         <span class="story-name">${currentUser.username}</span>
       `;
       story.addEventListener('click', () => navBtnTrending.click());
       storiesContainer.prepend(story);
-      document.getElementById('storyVideoFeed').srcObject = mediaStream;
 
-      // 3. Render modelo TikTok em Tela Cheia na aba "Em Alta" (Conforme Imagem Enviada)
+      // 3. Render Tela Cheia em "Em Alta" (Apenas AQUI o vídeo roda e permite interações)
       const tiktokContainer = document.getElementById('tiktokContainer');
       const slide = document.createElement('div');
       slide.className = 'tiktok-slide';
       slide.id = 'myTikTokSlide';
 
+      // LÓGICA DE LIVE PRIVADA: Se for o Streamer (isHost), NUNCA mostra a tela de bloqueio
+      const showPrivateLock = currentLiveConfig.isPrivate && !isHost && !unlockedPrivateLives.has('myLive');
+
       slide.innerHTML = `
         <video class="tiktok-video" id="tiktokVideoFeed" autoplay playsinline muted></video>
 
-        <!-- Bloqueio para Live Privada -->
-        ${currentLiveConfig.isPrivate && !unlockedPrivateLives.has('myLive') ? `
+        <!-- Bloqueio de Ticket (Somente para espectadores de lives privadas) -->
+        ${showPrivateLock ? `
           <div class="private-lock-overlay" id="privateOverlay">
             <div style="color: #f39c12; margin-bottom: 15px;">
               <svg width="56" height="56" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
@@ -1390,7 +1435,7 @@
           </div>
         ` : ''}
 
-        <!-- Overlay Estilo TikTok da Imagem -->
+        <!-- Overlay do Player -->
         <div class="tiktok-overlay">
           <!-- Top Bar -->
           <div class="live-top-bar">
@@ -1403,8 +1448,16 @@
             </div>
 
             <div class="live-status-pill">
-              <span class="viewers-count-text" style="display:flex; align-items:center; gap:4px;">${svgIcons.eye} 1</span>
-              <span class="live-badge-red">Live</span>
+              <span class="viewers-count-text" style="display:flex; align-items:center; gap:4px; font-size:0.75rem;">${svgIcons.eye} 1</span>
+              
+              <!-- BOTÃO DE ENCERRAR LIVE PARA A STREAMER -->
+              ${isHost ? `
+                <button class="btn-end-live" id="btnEndLiveTop">
+                  ${svgIcons.power} Encerrar
+                </button>
+              ` : `
+                <span class="live-badge-red">Live</span>
+              `}
             </div>
           </div>
 
@@ -1435,7 +1488,13 @@
       tiktokContainer.prepend(slide);
       document.getElementById('tiktokVideoFeed').srcObject = mediaStream;
 
-      // Eventos de Chat e Interações Reais
+      // Evento do Botão "Encerrar" no topo do player
+      const btnEndLiveTop = slide.querySelector('#btnEndLiveTop');
+      if (btnEndLiveTop) {
+        btnEndLiveTop.addEventListener('click', stopBroadcasting);
+      }
+
+      // Eventos de Chat
       const chatInput = slide.querySelector('#chatInput');
       const btnSendChat = slide.querySelector('#btnSendChat');
       const commentsContainer = slide.querySelector('#commentsContainer');
@@ -1460,7 +1519,7 @@
         if (e.key === 'Enter') sendRealComment();
       });
 
-      // Desbloqueio se privada
+      // Evento de Desbloqueio Inline para Espectador
       const btnUnlockInline = slide.querySelector('#btnUnlockInline');
       if (btnUnlockInline) {
         btnUnlockInline.addEventListener('click', () => {
@@ -1468,6 +1527,9 @@
           document.getElementById('ticketPurchaseModal').classList.add('active');
         });
       }
+
+      // Muda para a aba de rolagem para que a live seja exibida
+      navBtnTrending.click();
     }
 
     // Modal Compra Ticket
@@ -1483,7 +1545,7 @@
     });
 
     function checkEmptyStates() {
-      if (livesGrid.children.length <= 1) {
+      if (document.getElementById('livesGrid').children.length <= 1) {
         document.getElementById('noLivesMsg').style.display = 'block';
       }
       if (document.getElementById('tiktokContainer').children.length <= 1) {
