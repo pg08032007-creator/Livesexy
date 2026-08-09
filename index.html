@@ -15,18 +15,17 @@
     }
 
     body {
-  background-color: #09090d;
-  background: linear-gradient(rgba(9, 9, 13, 0.75), rgba(9, 9, 13, 0.85)), 
-              url('paper.jpg') no-repeat center center fixed;
-  background-size: cover;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  padding: 10px;
-}
-
+      background-color: #09090d;
+      background: linear-gradient(rgba(9, 9, 13, 0.75), rgba(9, 9, 13, 0.85)), 
+                  url('paper.jpg') no-repeat center center fixed;
+      background-size: cover;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      padding: 10px;
+    }
 
     /* ================= TELA 1: LOGIN / REGISTRO ================= */
     .welcome-card {
@@ -58,7 +57,6 @@
       margin-bottom: 25px;
     }
 
-    /* Ocultar Etapas Inativas */
     .step {
       display: none;
     }
@@ -203,7 +201,7 @@
 
     /* ================= TELA 2: INTERFACE DO APP (FEED) ================= */
     .app-screen {
-      display: none; /* Escondido por padrão */
+      display: none;
       width: 100%;
       justify-content: center;
     }
@@ -216,15 +214,26 @@
       width: 100%;
       max-width: 430px;
       background-color: #121218;
-      min-height: 100vh;
+      height: 100vh;
+      max-height: 880px;
       display: flex;
       flex-direction: column;
       position: relative;
-      padding-bottom: 80px;
       box-shadow: 0 0 40px rgba(0,0,0,0.9);
-      border-radius: 16px;
+      border-radius: 20px;
       overflow: hidden;
     }
+
+    /* Conteúdo das Abas */
+    .tab-content {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 70px;
+      scrollbar-width: none;
+    }
+    .tab-content::-webkit-scrollbar { display: none; }
+    .tab-content.active { display: block; }
 
     .header {
       display: flex;
@@ -258,7 +267,7 @@
       fill: currentColor;
     }
 
-    /* Carrossel */
+    /* Carrossel Stories */
     .stories-container {
       display: flex;
       gap: 15px;
@@ -277,6 +286,7 @@
       align-items: center;
       gap: 6px;
       flex-shrink: 0;
+      cursor: pointer;
     }
 
     .avatar-wrapper {
@@ -286,6 +296,10 @@
       border-radius: 50%;
       padding: 3px;
       background: linear-gradient(45deg, #e50914, #ff4757);
+    }
+
+    .avatar-wrapper.private-live {
+      background: linear-gradient(45deg, #f39c12, #f1c40f);
     }
 
     .avatar-wrapper video {
@@ -307,6 +321,10 @@
       padding: 2px 5px;
       border-radius: 10px;
       border: 2px solid #121218;
+    }
+
+    .badge-live-mini.private {
+      background: #f39c12;
     }
 
     .story-name {
@@ -366,7 +384,7 @@
       color: #ffffff;
     }
 
-    /* Grid de Lives Reais */
+    /* Grid de Lives */
     .lives-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -392,6 +410,8 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      cursor: pointer;
+      position: relative;
     }
 
     .card-thumb {
@@ -433,6 +453,18 @@
       font-weight: 800;
       padding: 3px 8px;
       border-radius: 12px;
+    }
+
+    .badge-ticket {
+      background-color: #f39c12;
+      color: #121218;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .stream-title {
@@ -485,11 +517,11 @@
 
     /* Navbar Inferior Fixa */
     .navbar {
-      position: fixed;
+      position: absolute;
       bottom: 0;
       width: 100%;
-      max-width: 430px;
-      background-color: #121218;
+      background-color: rgba(18, 18, 24, 0.95);
+      backdrop-filter: blur(10px);
       border-top: 1px solid #1f1f2e;
       display: flex;
       justify-content: space-around;
@@ -506,6 +538,9 @@
       text-decoration: none;
       font-size: 0.65rem;
       gap: 3px;
+      cursor: pointer;
+      background: none;
+      border: none;
     }
 
     .nav-item.active {
@@ -543,6 +578,355 @@
       height: 26px;
       fill: currentColor;
     }
+
+    /* ================= MODELO LIVES EM ALTA (TIPO TIKTOK) ================= */
+    .tiktok-container {
+      height: 100%;
+      width: 100%;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      background-color: #000000;
+    }
+
+    .tiktok-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tiktok-slide {
+      height: 100%;
+      width: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      position: relative;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .tiktok-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    /* Overlay Estilo Imagem Enviada */
+    .tiktok-overlay {
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 15px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 20%, transparent 70%, rgba(0,0,0,0.85) 100%);
+      pointer-events: none;
+    }
+
+    .tiktok-overlay * {
+      pointer-events: auto;
+    }
+
+    /* Top Bar Estilo Imagem */
+    .live-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 5px;
+    }
+
+    .streamer-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(12px);
+      padding: 4px 12px 4px 4px;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .streamer-pill-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e50914;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+
+    .streamer-pill-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .streamer-pill-name {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .btn-follow {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      cursor: pointer;
+      margin-left: 4px;
+    }
+
+    .live-status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(12px);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .live-badge-red {
+      background: #e50914;
+      color: #fff;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: 800;
+    }
+
+    /* Área de Chat Reais (Bottom) */
+    .live-bottom-area {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 60px; /* Evita cobrir a navbar */
+    }
+
+    .comments-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+      scrollbar-width: none;
+      mask-image: linear-gradient(to bottom, transparent 0%, black 20%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%);
+    }
+
+    .comments-container::-webkit-scrollbar { display: none; }
+
+    .comment-bubble {
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(8px);
+      padding: 6px 12px;
+      border-radius: 16px;
+      align-self: flex-start;
+      max-width: 85%;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .comment-user {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #a0a0b0;
+      margin-bottom: 2px;
+    }
+
+    .comment-text {
+      font-size: 0.8rem;
+      color: #ffffff;
+      word-break: break-word;
+    }
+
+    /* Ações Inferiores (Estilo Imagem) */
+    .live-action-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-input-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(15px);
+      border-radius: 25px;
+      padding: 0 14px;
+      height: 42px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .chat-input-wrapper input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: white;
+      width: 100%;
+      font-size: 0.85rem;
+    }
+
+    .chat-input-wrapper input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .btn-action-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .btn-action-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    .btn-send {
+      background: #a855f7;
+    }
+
+    .btn-heart {
+      background: rgba(229, 9, 20, 0.3);
+      color: #ff4757;
+    }
+
+    /* Overlay para Bloqueio de Live Privada */
+    .private-lock-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(9, 9, 13, 0.92);
+      backdrop-filter: blur(20px);
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+    }
+
+    /* Modais */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: #181822;
+      border: 1px solid #2a2a3d;
+      border-radius: 24px;
+      padding: 25px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+      transform: translateY(15px);
+      transition: transform 0.25s ease;
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: #888899;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .live-type-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 15px 0 20px 0;
+    }
+
+    .type-option {
+      background-color: #12121a;
+      border: 2px solid #2a2a3a;
+      border-radius: 16px;
+      padding: 15px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .type-option.selected {
+      border-color: #e50914;
+      background-color: rgba(229, 9, 20, 0.1);
+    }
+
+    .type-option.selected.private-mode {
+      border-color: #f39c12;
+      background-color: rgba(243, 156, 18, 0.1);
+    }
+
+    .type-icon {
+      font-size: 1.6rem;
+      margin-bottom: 6px;
+    }
+
+    .type-title {
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-bottom: 2px;
+    }
+
+    .type-desc {
+      font-size: 0.7rem;
+      color: #888899;
+    }
   </style>
 </head>
 <body>
@@ -552,7 +936,6 @@
     <h1 class="app-title">PIJAMA <span>PARTY</span></h1>
     <p class="subtitle" id="cardSubtitle">Assista ou transmita em tempo real</p>
 
-    <!-- ETAPA 1: E-mail ou Anônimo -->
     <div class="step active" id="step1">
       <form class="auth-form" id="emailForm">
         <div class="input-group">
@@ -574,7 +957,6 @@
       </button>
     </div>
 
-    <!-- ETAPA 2: Dados +18 -->
     <div class="step" id="step2">
       <form class="auth-form" id="registerForm">
         <div class="input-group">
@@ -609,125 +991,192 @@
   </div>
 
 
-  <!-- ================= TELA DA INTERFACE (FEED) ================= -->
+  <!-- ================= TELA DA INTERFACE (APP CONTAINER) ================= -->
   <div class="app-screen" id="appScreen">
     <div class="app-container">
 
-      <!-- Header -->
-      <div class="header">
-        <div class="app-title" style="font-size: 1.3rem;">PIJAMA<span>PARTY</span></div>
-        <div class="header-actions">
-          <button class="icon-btn">
-            <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-          </button>
-          <button class="icon-btn">
-            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-          </button>
+      <!-- ABA 1: FEED INICIAL (GRID E CARROSSEL) -->
+      <div class="tab-content active" id="tabHome">
+        <div class="header">
+          <div class="app-title" style="font-size: 1.3rem;">PIJAMA<span>PARTY</span></div>
+          <div class="header-actions">
+            <button class="icon-btn">
+              <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Carrossel Stories -->
+        <div class="stories-container" id="storiesContainer"></div>
+
+        <!-- Categorias -->
+        <div class="section-header">
+          <span class="section-title">Categorias</span>
+          <a href="#" class="view-all">Ver tudo</a>
+        </div>
+
+        <div class="categories-bar">
+          <button class="category-chip active">🔥 Em Alta</button>
+          <button class="category-chip">💋 Privado 1v1</button>
+          <button class="category-chip">🌙 Pijama Room</button>
+        </div>
+
+        <!-- Grid de Lives -->
+        <div class="lives-grid" id="livesGrid">
+          <div class="no-lives-msg" id="noLivesMsg">
+            Nenhuma live acontecendo agora.<br>Clique no botão <strong>+</strong> abaixo para iniciar a primeira!
+          </div>
         </div>
       </div>
 
-      <!-- Carrossel de Perfis Transmitindo -->
-      <div class="stories-container" id="storiesContainer">
-        <!-- Preenchido dinamicamente quando uma live inicia -->
-      </div>
-
-      <!-- Categorias -->
-      <div class="section-header">
-        <span class="section-title">Categorias</span>
-        <a href="#" class="view-all">Ver tudo</a>
-      </div>
-
-      <div class="categories-bar">
-        <button class="category-chip active">🔥 Em Alta</button>
-        <button class="category-chip">💋 Privado 1v1</button>
-        <button class="category-chip">🌙 Pijama Room</button>
-        <button class="category-chip">⭐ Criadores VIP</button>
-      </div>
-
-      <!-- Grid de Lives Reais -->
-      <div class="lives-grid" id="livesGrid">
-        <div class="no-lives-msg" id="noLivesMsg">
-          Nenhuma live acontecendo agora.<br>Clique no botão <strong>+</strong> abaixo para iniciar a primeira!
+      <!-- ABA 2: EM ALTA (ESTILO TIKTOK COM ARRASTE VERTICAL) -->
+      <div class="tab-content" id="tabTrending" style="padding-bottom: 0;">
+        <div class="tiktok-container" id="tiktokContainer">
+          <div class="no-lives-msg" id="noTrendingMsg" style="margin: 100px 20px;">
+            Nenhuma live ao vivo disponível para rolagem vertical.<br>Inicie uma live no botão abaixo!
+          </div>
         </div>
       </div>
 
-      <!-- Navbar Inferior -->
+      <!-- NAVBAR INFERIOR FIXA -->
       <div class="navbar">
-        <a href="#" class="nav-item active">
+        <button class="nav-item active" id="navBtnHome">
           <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
           <span>Início</span>
-        </a>
-        <a href="#" class="nav-item">
+        </button>
+        <button class="nav-item" id="navBtnTrending">
           <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
           <span>Em Alta</span>
-        </a>
+        </button>
 
-        <!-- Botão Central: Iniciar Transmissão Real -->
+        <!-- Botão Central: Iniciar Transmissão -->
         <button class="fab-btn" id="startLiveBtn" title="Iniciar Live">
           <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
         </button>
 
-        <a href="#" class="nav-item">
+        <button class="nav-item">
           <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
           <span>Chats</span>
-        </a>
-        <a href="#" class="nav-item">
+        </button>
+        <button class="nav-item">
           <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
           <span id="navProfileName">Perfil</span>
-        </a>
+        </button>
       </div>
 
     </div>
   </div>
 
+
+  <!-- ================= MODAL DE CONFIGURAÇÃO DE LIVE ================= -->
+  <div class="modal-overlay" id="setupLiveModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Configurar Transmissão</h3>
+        <button class="modal-close" id="btnCloseSetupModal">✕</button>
+      </div>
+
+      <div class="input-group">
+        <label for="liveTitleInput">Título da Live</label>
+        <input type="text" id="liveTitleInput" placeholder="Ex: Jogando com a galera 🔥" value="Minha Live Ao Vivo">
+      </div>
+
+      <div style="margin-top: 15px;">
+        <label style="font-size: 0.8rem; color: #cccccc; display: block; margin-left: 8px;">Privacidade da Transmissão</label>
+        
+        <div class="live-type-grid">
+          <div class="type-option selected" id="optPublic">
+            <div class="type-icon">🌐</div>
+            <div class="type-title">Pública</div>
+            <div class="type-desc">Livre para todos assistirem</div>
+          </div>
+
+          <div class="type-option" id="optPrivate">
+            <div class="type-icon">🔒</div>
+            <div class="type-title">Privada</div>
+            <div class="type-desc">Acesso restrito por Ticket</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-group" id="ticketInputGroup" style="display: none;">
+        <label for="ticketPriceInput">Preço da Entrada (Tickets)</label>
+        <input type="number" id="ticketPriceInput" value="50" min="1">
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 25px;">
+        <button type="button" class="btn btn-secondary" id="btnCancelLiveConfig">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btnConfirmStartLive">Entrar ao Vivo 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL COMPRA DE TICKET ================= -->
+  <div class="modal-overlay" id="ticketPurchaseModal">
+    <div class="modal-card" style="text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 10px;">🎟️</div>
+      <h3 class="modal-title" style="margin-bottom: 8px;">Live Privada</h3>
+      <p style="font-size: 0.85rem; color: #a0a0b0; margin-bottom: 20px;">
+        Esta transmissão é exclusiva. Adquira o ticket para desbloquear.
+      </p>
+
+      <div style="background: #12121a; padding: 15px; border-radius: 16px; margin-bottom: 20px; border: 1px solid #2a2a3d;">
+        <span style="font-size: 0.8rem; color: #888899;">Valor do Ingresso:</span>
+        <div style="font-size: 1.5rem; font-weight: 800; color: #f39c12; margin-top: 4px;" id="modalTicketCost">
+          50 Tickets
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-primary" id="btnBuyTicket" style="background: #f39c12; color: #121218;">
+        Comprar e Assistir 🔓
+      </button>
+      <button type="button" class="btn btn-secondary" id="btnCloseTicketModal" style="margin-top: 8px;">
+        Voltar
+      </button>
+    </div>
+  </div>
+
   <!-- LÓGICA JAVASCRIPT -->
   <script>
-    let currentUser = {
-      username: 'Anônimo',
-      isAnon: true
-    };
-
+    let currentUser = { username: 'Anônimo', isAnon: true };
     let mediaStream = null;
     let isBroadcasting = false;
+    let unlockedPrivateLives = new Set(); // Guarda IDs de lives privadas desbloqueadas
 
-    // Elementos da Interface
+    let currentLiveConfig = {
+      title: 'Transmissão Ao Vivo',
+      isPrivate: false,
+      ticketPrice: 50
+    };
+
+    // Elementos Auth
     const authScreen = document.getElementById('authScreen');
     const appScreen = document.getElementById('appScreen');
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
-    const cardSubtitle = document.getElementById('cardSubtitle');
 
-    // Navegação Etapa 1 -> Etapa 2
+    // Navegação Auth
     document.getElementById('emailForm').addEventListener('submit', (e) => {
       e.preventDefault();
       step1.classList.remove('active');
       step2.classList.add('active');
-      cardSubtitle.textContent = "Complete seu perfil para continuar";
     });
 
     document.getElementById('btnBack').addEventListener('click', () => {
       step2.classList.remove('active');
       step1.classList.add('active');
-      cardSubtitle.textContent = "Assista ou transmita em tempo real";
     });
 
-    // Cadastro
     document.getElementById('registerForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const userVal = document.getElementById('username').value.trim();
-      const ageCheck = document.getElementById('ageCheck').checked;
-
-      if (!ageCheck) {
-        alert("É necessário confirmar que você é maior de 18 anos.");
-        return;
-      }
+      if (!document.getElementById('ageCheck').checked) return alert("Confirme sua idade (+18).");
 
       currentUser.username = userVal.startsWith('@') ? userVal : `@${userVal}`;
       currentUser.isAnon = false;
       enterApp();
     });
 
-    // Anônimo
     document.getElementById('btnAnon').addEventListener('click', () => {
       currentUser.username = '@Anonimo_' + Math.floor(1000 + Math.random() * 9000);
       currentUser.isAnon = true;
@@ -740,93 +1189,264 @@
       document.getElementById('navProfileName').textContent = currentUser.username;
     }
 
-    // Câmera ao vivo
+    // Navegação entre Abas (Início x Em Alta)
+    const navBtnHome = document.getElementById('navBtnHome');
+    const navBtnTrending = document.getElementById('navBtnTrending');
+    const tabHome = document.getElementById('tabHome');
+    const tabTrending = document.getElementById('tabTrending');
+
+    navBtnHome.addEventListener('click', () => {
+      navBtnHome.classList.add('active');
+      navBtnTrending.classList.remove('active');
+      tabHome.classList.add('active');
+      tabTrending.classList.remove('active');
+    });
+
+    navBtnTrending.addEventListener('click', () => {
+      navBtnTrending.classList.add('active');
+      navBtnHome.classList.remove('active');
+      tabTrending.classList.add('active');
+      tabHome.classList.remove('active');
+    });
+
+    // Modal de Transmissão
+    const setupLiveModal = document.getElementById('setupLiveModal');
+    const optPublic = document.getElementById('optPublic');
+    const optPrivate = document.getElementById('optPrivate');
+    const ticketInputGroup = document.getElementById('ticketInputGroup');
     const startLiveBtn = document.getElementById('startLiveBtn');
-    const livesGrid = document.getElementById('livesGrid');
-    const storiesContainer = document.getElementById('storiesContainer');
 
-    startLiveBtn.addEventListener('click', async () => {
+    startLiveBtn.addEventListener('click', () => {
       if (!isBroadcasting) {
-        try {
-          mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          isBroadcasting = true;
-          
-          startLiveBtn.classList.add('broadcasting');
-          startLiveBtn.title = "Encerrar Live";
-
-          createLiveCard();
-        } catch (err) {
-          alert('Permissão de câmera negada ou indisponível: ' + err.message);
-        }
+        setupLiveModal.classList.add('active');
       } else {
-        if (mediaStream) {
-          mediaStream.getTracks().forEach(track => track.stop());
-        }
-        isBroadcasting = false;
-        startLiveBtn.classList.remove('broadcasting');
-        startLiveBtn.title = "Iniciar Live";
-
-        removeLiveCard();
+        stopBroadcasting();
       }
     });
 
-    function createLiveCard() {
-      const noLivesMsg = document.getElementById('noLivesMsg');
-      if (noLivesMsg) noLivesMsg.style.display = 'none';
+    optPublic.addEventListener('click', () => {
+      optPublic.classList.add('selected');
+      optPrivate.classList.remove('selected', 'private-mode');
+      ticketInputGroup.style.display = 'none';
+      currentLiveConfig.isPrivate = false;
+    });
 
-      // Criar Card
+    optPrivate.addEventListener('click', () => {
+      optPrivate.classList.add('selected', 'private-mode');
+      optPublic.classList.remove('selected');
+      ticketInputGroup.style.display = 'block';
+      currentLiveConfig.isPrivate = true;
+    });
+
+    document.getElementById('btnCloseSetupModal').addEventListener('click', () => setupLiveModal.classList.remove('active'));
+    document.getElementById('btnCancelLiveConfig').addEventListener('click', () => setupLiveModal.classList.remove('active'));
+
+    document.getElementById('btnConfirmStartLive').addEventListener('click', async () => {
+      const titleVal = document.getElementById('liveTitleInput').value.trim();
+      const priceVal = parseInt(document.getElementById('ticketPriceInput').value);
+
+      if (titleVal) currentLiveConfig.title = titleVal;
+      if (currentLiveConfig.isPrivate && priceVal > 0) currentLiveConfig.ticketPrice = priceVal;
+
+      setupLiveModal.classList.remove('active');
+
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        isBroadcasting = true;
+        
+        startLiveBtn.classList.add('broadcasting');
+        startLiveBtn.title = "Encerrar Live";
+
+        renderActiveLive();
+      } catch (err) {
+        alert('Câmera indisponível: ' + err.message);
+      }
+    });
+
+    function stopBroadcasting() {
+      if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+      isBroadcasting = false;
+      startLiveBtn.classList.remove('broadcasting');
+      
+      // Remover elementos
+      document.querySelectorAll('#myLiveCard, #myLiveStory, #myTikTokSlide').forEach(el => el.remove());
+
+      checkEmptyStates();
+    }
+
+    // Renderizar Live Real nas Interfaces
+    function renderActiveLive() {
+      // 1. Ocultar mensagens de sem live
+      document.getElementById('noLivesMsg').style.display = 'none';
+      document.getElementById('noTrendingMsg').style.display = 'none';
+
+      // 2. Render Card no Feed
+      const livesGrid = document.getElementById('livesGrid');
       const card = document.createElement('div');
       card.className = 'live-card';
       card.id = 'myLiveCard';
-
       card.innerHTML = `
         <div class="card-thumb">
           <div class="thumb-badge-top">
-            <span class="viewers-count">👁️ 1 (Você)</span>
-            <span class="badge-live">AO VIVO</span>
+            <span class="viewers-count">👁️ 1</span>
+            ${currentLiveConfig.isPrivate ? `<span class="badge-ticket">🔒 ${currentLiveConfig.ticketPrice} Tickets</span>` : `<span class="badge-live">AO VIVO</span>`}
           </div>
-          <video id="liveVideoFeed" autoplay playsinline muted></video>
-          <div class="stream-title">Transmissão Ao Vivo</div>
+          <video id="liveVideoFeedCard" autoplay playsinline muted></video>
+          <div class="stream-title">${currentLiveConfig.title}</div>
         </div>
         <div class="card-footer">
           <div class="streamer-avatar-placeholder">${currentUser.username.charAt(1).toUpperCase()}</div>
           <div class="streamer-info">
             <div class="streamer-name">${currentUser.username}</div>
-            <div class="streamer-status">Transmitindo agora</div>
+            <div class="streamer-status">${currentLiveConfig.isPrivate ? 'Live Privada' : 'Live Pública'}</div>
           </div>
         </div>
       `;
+      
+      card.addEventListener('click', () => {
+        navBtnTrending.click(); // Vai para o modo TikTok ao clicar
+      });
 
       livesGrid.prepend(card);
+      document.getElementById('liveVideoFeedCard').srcObject = mediaStream;
 
-      const videoElem = document.getElementById('liveVideoFeed');
-      videoElem.srcObject = mediaStream;
-
-      // Criar Story no Carrossel Superior
+      // 3. Render Story Topo
+      const storiesContainer = document.getElementById('storiesContainer');
       const story = document.createElement('div');
       story.className = 'story-item';
       story.id = 'myLiveStory';
       story.innerHTML = `
-        <div class="avatar-wrapper">
-          <span class="badge-live-mini">LIVE</span>
+        <div class="avatar-wrapper ${currentLiveConfig.isPrivate ? 'private-live' : ''}">
+          <span class="badge-live-mini ${currentLiveConfig.isPrivate ? 'private' : ''}">${currentLiveConfig.isPrivate ? '🔒' : 'LIVE'}</span>
           <video id="storyVideoFeed" autoplay playsinline muted></video>
         </div>
         <span class="story-name">${currentUser.username}</span>
       `;
+      story.addEventListener('click', () => navBtnTrending.click());
       storiesContainer.prepend(story);
+      document.getElementById('storyVideoFeed').srcObject = mediaStream;
 
-      const storyVideoElem = document.getElementById('storyVideoFeed');
-      storyVideoElem.srcObject = mediaStream;
+      // 4. Render modelo TikTok em Tela Cheia na aba "Em Alta" (Conforme Imagem Enviada)
+      const tiktokContainer = document.getElementById('tiktokContainer');
+      const slide = document.createElement('div');
+      slide.className = 'tiktok-slide';
+      slide.id = 'myTikTokSlide';
+
+      slide.innerHTML = `
+        <video class="tiktok-video" id="tiktokVideoFeed" autoplay playsinline muted></video>
+
+        <!-- Bloqueio para Live Privada -->
+        ${currentLiveConfig.isPrivate && !unlockedPrivateLives.has('myLive') ? `
+          <div class="private-lock-overlay" id="privateOverlay">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
+            <h2 style="font-size: 1.2rem; margin-bottom: 6px;">Live Privada</h2>
+            <p style="font-size: 0.85rem; color: #a0a0b0; margin-bottom: 20px;">Você precisa de um Ticket para acessar esta transmissão.</p>
+            <button class="btn btn-primary" id="btnUnlockInline" style="background: #f39c12; color: #121218; width: auto; padding: 12px 24px;">
+              Desbloquear por ${currentLiveConfig.ticketPrice} Tickets 🎟️
+            </button>
+          </div>
+        ` : ''}
+
+        <!-- Overlay Estilo TikTok da Imagem -->
+        <div class="tiktok-overlay">
+          <!-- Top Bar -->
+          <div class="live-top-bar">
+            <div class="streamer-pill">
+              <div class="streamer-pill-avatar">${currentUser.username.charAt(1).toUpperCase()}</div>
+              <div class="streamer-pill-info">
+                <span class="streamer-pill-name">${currentUser.username}</span>
+              </div>
+              <button class="btn-follow">Seguir</button>
+            </div>
+
+            <div class="live-status-pill">
+              <span class="viewers-count-text">👁️ 1</span>
+              <span class="live-badge-red">Live</span>
+            </div>
+          </div>
+
+          <!-- Área Inferior: Comentários Reais + Input -->
+          <div class="live-bottom-area">
+            <div class="comments-container" id="commentsContainer">
+              <!-- Apenas comentários enviados por usuários reais entram aqui -->
+            </div>
+
+            <div class="live-action-bar">
+              <div class="chat-input-wrapper">
+                <input type="text" id="chatInput" placeholder="Comentar...">
+                <button class="btn-action-icon btn-send" id="btnSendChat">
+                  <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+              </div>
+
+              <button class="btn-action-icon">
+                <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+              </button>
+
+              <button class="btn-action-icon btn-heart" id="btnHeart">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      tiktokContainer.prepend(slide);
+      document.getElementById('tiktokVideoFeed').srcObject = mediaStream;
+
+      // Eventos de Chat e Interações Reais
+      const chatInput = slide.querySelector('#chatInput');
+      const btnSendChat = slide.querySelector('#btnSendChat');
+      const commentsContainer = slide.querySelector('#commentsContainer');
+
+      function sendRealComment() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        const bubble = document.createElement('div');
+        bubble.className = 'comment-bubble';
+        bubble.innerHTML = `
+          <div class="comment-user">${currentUser.username}</div>
+          <div class="comment-text">${text}</div>
+        `;
+        commentsContainer.appendChild(bubble);
+        commentsContainer.scrollTop = commentsContainer.scrollHeight;
+        chatInput.value = '';
+      }
+
+      btnSendChat.addEventListener('click', sendRealComment);
+      chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendRealComment();
+      });
+
+      // Desbloqueio se privada
+      const btnUnlockInline = slide.querySelector('#btnUnlockInline');
+      if (btnUnlockInline) {
+        btnUnlockInline.addEventListener('click', () => {
+          document.getElementById('modalTicketCost').textContent = `${currentLiveConfig.ticketPrice} Tickets`;
+          document.getElementById('ticketPurchaseModal').classList.add('active');
+        });
+      }
     }
 
-    function removeLiveCard() {
-      const card = document.getElementById('myLiveCard');
-      const story = document.getElementById('myLiveStory');
-      if (card) card.remove();
-      if (story) story.remove();
+    // Modal Compra Ticket
+    document.getElementById('btnCloseTicketModal').addEventListener('click', () => {
+      document.getElementById('ticketPurchaseModal').classList.remove('active');
+    });
 
-      if (livesGrid.children.length === 1 && document.getElementById('noLivesMsg')) {
+    document.getElementById('btnBuyTicket').addEventListener('click', () => {
+      unlockedPrivateLives.add('myLive');
+      document.getElementById('ticketPurchaseModal').classList.remove('active');
+      const overlay = document.getElementById('privateOverlay');
+      if (overlay) overlay.remove();
+    });
+
+    function checkEmptyStates() {
+      if (livesGrid.children.length <= 1) {
         document.getElementById('noLivesMsg').style.display = 'block';
+      }
+      if (document.getElementById('tiktokContainer').children.length <= 1) {
+        document.getElementById('noTrendingMsg').style.display = 'block';
       }
     }
   </script>
