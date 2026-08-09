@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Pijama Party - Live Streaming +18</title>
+  <title>Pijama Party - Live Streaming Pro</title>
   <style>
     /* ================= ESTILOS GERAIS ================= */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
     body {
       background-color: #09090d;
-      background: linear-gradient(rgba(9, 9, 13, 0.75), rgba(9, 9, 13, 0.85)), 
+      background: linear-gradient(rgba(9, 9, 13, 0.85), rgba(9, 9, 13, 0.95)), 
                   url('paper.jpg') no-repeat center center fixed;
       background-size: cover;
       min-height: 100vh;
@@ -27,24 +27,33 @@
       padding: 10px;
     }
 
+    /* Helper para SVG inline */
+    .icon-svg {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      fill: currentColor;
+    }
+
     /* ================= TELA 1: LOGIN / REGISTRO ================= */
     .welcome-card {
       background: rgba(20, 20, 28, 0.95);
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 24px;
       padding: 35px 25px;
       width: 100%;
       max-width: 400px;
       text-align: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
     }
 
     .app-title {
-      font-size: 2rem;
+      font-size: 1.8rem;
       font-weight: 800;
       margin-bottom: 6px;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
     }
 
     .app-title span {
@@ -52,8 +61,8 @@
     }
 
     .subtitle {
-      font-size: 0.9rem;
-      color: #a0a0b0;
+      font-size: 0.85rem;
+      color: #8e8e9e;
       margin-bottom: 25px;
     }
 
@@ -77,10 +86,11 @@
 
     .input-group label {
       display: block;
-      font-size: 0.8rem;
-      color: #cccccc;
+      font-size: 0.78rem;
+      color: #b0b0c0;
       margin-bottom: 6px;
       margin-left: 8px;
+      font-weight: 600;
     }
 
     .input-group input, 
@@ -91,15 +101,15 @@
       border: 1px solid #2a2a3a;
       background-color: #12121a;
       color: #ffffff;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     .input-group select {
       cursor: pointer;
       appearance: none;
-      background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+      background-image: url("data:image/svg+xml;utf8,<svg fill='%23a0a0b0' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
       background-repeat: no-repeat;
       background-position: right 15px center;
     }
@@ -107,6 +117,7 @@
     .input-group input:focus,
     .input-group select:focus {
       border-color: #e50914;
+      box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
     }
 
     .checkbox-group {
@@ -130,10 +141,10 @@
     .age-badge {
       background-color: #e50914;
       color: #fff;
-      font-weight: bold;
-      padding: 1px 5px;
+      font-weight: 700;
+      padding: 2px 6px;
       border-radius: 4px;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
     }
 
     .btn {
@@ -142,12 +153,12 @@
       border: none;
       border-radius: 30px;
       font-weight: 700;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
       transition: transform 0.1s, background-color 0.2s;
     }
 
@@ -158,7 +169,7 @@
     .btn-primary {
       background-color: #e50914;
       color: #ffffff;
-      box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+      box-shadow: 0 4px 15px rgba(229, 9, 20, 0.35);
     }
 
     .btn-secondary {
@@ -172,8 +183,10 @@
       display: flex;
       align-items: center;
       margin: 20px 0;
-      color: #666677;
-      font-size: 0.8rem;
+      color: #555566;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1px;
     }
 
     .divider::before, .divider::after {
@@ -184,19 +197,13 @@
     }
 
     .divider span {
-      padding: 0 10px;
+      padding: 0 12px;
     }
 
     .btn-anonymous {
       background-color: #1a1a26;
       border: 1px solid #2a2a3d;
       color: #dddddd;
-    }
-
-    .mask-icon {
-      width: 18px;
-      height: 18px;
-      fill: currentColor;
     }
 
     /* ================= TELA 2: INTERFACE DO APP (FEED) ================= */
@@ -219,8 +226,8 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      box-shadow: 0 0 40px rgba(0,0,0,0.9);
-      border-radius: 20px;
+      box-shadow: 0 0 50px rgba(0,0,0,0.9);
+      border-radius: 24px;
       overflow: hidden;
     }
 
@@ -259,12 +266,6 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-    }
-
-    .icon-btn svg {
-      width: 18px;
-      height: 18px;
-      fill: currentColor;
     }
 
     /* Carrossel Stories */
@@ -321,10 +322,14 @@
       padding: 2px 5px;
       border-radius: 10px;
       border: 2px solid #121218;
+      display: flex;
+      align-items: center;
+      gap: 2px;
     }
 
     .badge-live-mini.private {
       background: #f39c12;
+      color: #121218;
     }
 
     .story-name {
@@ -377,6 +382,10 @@
       font-weight: 600;
       white-space: nowrap;
       border: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
     }
 
     .category-chip.active {
@@ -401,7 +410,7 @@
       background-color: #181822;
       border-radius: 16px;
       border: 1px dashed #2a2a3d;
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
     .live-card {
@@ -438,12 +447,15 @@
     }
 
     .viewers-count {
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0, 0, 0, 0.65);
       backdrop-filter: blur(4px);
       padding: 3px 8px;
       border-radius: 12px;
-      font-size: 0.65rem;
+      font-size: 0.68rem;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .badge-live {
@@ -453,6 +465,7 @@
       font-weight: 800;
       padding: 3px 8px;
       border-radius: 12px;
+      letter-spacing: 0.5px;
     }
 
     .badge-ticket {
@@ -475,7 +488,7 @@
       z-index: 2;
       font-size: 0.8rem;
       font-weight: 700;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9);
     }
 
     .card-footer {
@@ -521,7 +534,7 @@
       bottom: 0;
       width: 100%;
       background-color: rgba(18, 18, 24, 0.95);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       border-top: 1px solid #1f1f2e;
       display: flex;
       justify-content: space-around;
@@ -571,12 +584,6 @@
     .fab-btn.broadcasting {
       background: #2ed573;
       box-shadow: 0 4px 15px rgba(46, 213, 115, 0.5);
-    }
-
-    .fab-btn svg {
-      width: 26px;
-      height: 26px;
-      fill: currentColor;
     }
 
     /* ================= MODELO LIVES EM ALTA (TIPO TIKTOK) ================= */
@@ -706,6 +713,7 @@
       padding: 2px 6px;
       border-radius: 10px;
       font-weight: 800;
+      letter-spacing: 0.5px;
     }
 
     /* Área de Chat Reais (Bottom) */
@@ -752,7 +760,7 @@
       word-break: break-word;
     }
 
-    /* Ações Inferiores (Estilo Imagem) */
+    /* Ações Inferiores */
     .live-action-bar {
       display: flex;
       align-items: center;
@@ -798,19 +806,15 @@
       cursor: pointer;
     }
 
-    .btn-action-icon svg {
-      width: 20px;
-      height: 20px;
-      fill: currentColor;
-    }
-
     .btn-send {
       background: #a855f7;
+      border: none;
     }
 
     .btn-heart {
       background: rgba(229, 9, 20, 0.3);
       color: #ff4757;
+      border: none;
     }
 
     /* Overlay para Bloqueio de Live Privada */
@@ -873,7 +877,7 @@
     }
 
     .modal-title {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       font-weight: 700;
     }
 
@@ -896,10 +900,13 @@
       background-color: #12121a;
       border: 2px solid #2a2a3a;
       border-radius: 16px;
-      padding: 15px 10px;
+      padding: 16px 10px;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .type-option.selected {
@@ -912,9 +919,17 @@
       background-color: rgba(243, 156, 18, 0.1);
     }
 
-    .type-icon {
-      font-size: 1.6rem;
-      margin-bottom: 6px;
+    .type-icon-wrapper {
+      margin-bottom: 8px;
+      color: #888899;
+    }
+
+    .type-option.selected .type-icon-wrapper {
+      color: #e50914;
+    }
+
+    .type-option.selected.private-mode .type-icon-wrapper {
+      color: #f39c12;
     }
 
     .type-title {
@@ -950,7 +965,7 @@
       </div>
 
       <button type="button" class="btn btn-anonymous" id="btnAnon">
-        <svg class="mask-icon" viewBox="0 0 24 24">
+        <svg class="icon-svg" width="18" height="18" viewBox="0 0 24 24">
           <path d="M12 2C6.48 2 2 6.48 2 12c0 3.5 2.1 6.5 5.1 7.8l.9-1.8C5.8 17 4 14.7 4 12c0-4.4 3.6-8 8-8s8 3.6 8 8c0 2.7-1.8 5-4 6l.9 1.8c3-1.3 5.1-4.3 5.1-7.8 0-5.52-4.48-10-10-10zm-3.5 8c-1.38 0-2.5 1.12-2.5 2.5S7.12 15 8.5 15s2.5-1.12 2.5-2.5S9.88 10 8.5 10zm7 0c-1.38 0-2.5 1.12-2.5 2.5s1.12 2.5 2.5 2.5 2.5-1.12 2.5-2.5-1.12-2.5-2.5-2.5z"/>
         </svg>
         Entrar como Anônimo
@@ -984,7 +999,10 @@
           <span>Confirmar que tenho <span class="age-badge">+18</span> anos.</span>
         </label>
 
-        <button type="submit" class="btn btn-primary">Entrar no App 🎈</button>
+        <button type="submit" class="btn btn-primary">
+          Entrar no App
+          <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
         <button type="button" class="btn btn-secondary" id="btnBack">← Voltar</button>
       </form>
     </div>
@@ -1000,8 +1018,8 @@
         <div class="header">
           <div class="app-title" style="font-size: 1.3rem;">PIJAMA<span>PARTY</span></div>
           <div class="header-actions">
-            <button class="icon-btn">
-              <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+            <button class="icon-btn" title="Notificações">
+              <svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
             </button>
           </div>
         </div>
@@ -1009,16 +1027,25 @@
         <!-- Carrossel Stories -->
         <div class="stories-container" id="storiesContainer"></div>
 
-        <!-- Categorias -->
+        <!-- Categorias com Ícones Profissionais -->
         <div class="section-header">
           <span class="section-title">Categorias</span>
           <a href="#" class="view-all">Ver tudo</a>
         </div>
 
         <div class="categories-bar">
-          <button class="category-chip active">🔥 Em Alta</button>
-          <button class="category-chip">💋 Privado 1v1</button>
-          <button class="category-chip">🌙 Pijama Room</button>
+          <button class="category-chip active">
+            <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24"><path d="M13.5 1.5c.41 2.6-1.11 4.41-2.6 6.1C9.28 9.4 8 11.23 8 13.5c0 2.49 2.01 4.5 4.5 4.5s4.5-2.01 4.5-4.5c0-1.22-.49-2.33-1.28-3.14-.19-.2-.3-.47-.3-.75 0-.58.48-1.05 1.06-1.02 2.16.12 3.72 1.83 3.72 3.91 0 3.59-2.91 6.5-6.5 6.5S7 17.09 7 13.5c0-3.32 2.37-5.83 4.5-8.2 1.18-1.31 2-2.82 2-3.8 0-.31.32-.52.6-.37.89.47 1.8 1.13 2.4 1.87z"/></svg>
+            Em Alta
+          </button>
+          <button class="category-chip">
+            <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            Privado 1v1
+          </button>
+          <button class="category-chip">
+            <svg class="icon-svg" width="14" height="14" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 21l3.54-.92C9.37 20.66 10.65 21 12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z"/></svg>
+            Pijama Room
+          </button>
         </div>
 
         <!-- Grid de Lives -->
@@ -1078,21 +1105,25 @@
 
       <div class="input-group">
         <label for="liveTitleInput">Título da Live</label>
-        <input type="text" id="liveTitleInput" placeholder="Ex: Jogando com a galera 🔥" value="Minha Live Ao Vivo">
+        <input type="text" id="liveTitleInput" placeholder="Ex: Transmissão Especial Ao Vivo" value="Minha Live Ao Vivo">
       </div>
 
       <div style="margin-top: 15px;">
-        <label style="font-size: 0.8rem; color: #cccccc; display: block; margin-left: 8px;">Privacidade da Transmissão</label>
+        <label style="font-size: 0.78rem; color: #b0b0c0; display: block; margin-left: 8px; font-weight: 600;">Privacidade da Transmissão</label>
         
         <div class="live-type-grid">
           <div class="type-option selected" id="optPublic">
-            <div class="type-icon">🌐</div>
+            <div class="type-icon-wrapper">
+              <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            </div>
             <div class="type-title">Pública</div>
             <div class="type-desc">Livre para todos assistirem</div>
           </div>
 
           <div class="type-option" id="optPrivate">
-            <div class="type-icon">🔒</div>
+            <div class="type-icon-wrapper">
+              <svg width="24" height="24" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            </div>
             <div class="type-title">Privada</div>
             <div class="type-desc">Acesso restrito por Ticket</div>
           </div>
@@ -1106,7 +1137,10 @@
 
       <div style="display: flex; gap: 10px; margin-top: 25px;">
         <button type="button" class="btn btn-secondary" id="btnCancelLiveConfig">Cancelar</button>
-        <button type="button" class="btn btn-primary" id="btnConfirmStartLive">Entrar ao Vivo 🚀</button>
+        <button type="button" class="btn btn-primary" id="btnConfirmStartLive">
+          Entrar ao Vivo
+          <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       </div>
     </div>
   </div>
@@ -1114,21 +1148,24 @@
   <!-- ================= MODAL COMPRA DE TICKET ================= -->
   <div class="modal-overlay" id="ticketPurchaseModal">
     <div class="modal-card" style="text-align: center;">
-      <div style="font-size: 3rem; margin-bottom: 10px;">🎟️</div>
+      <div style="color: #f39c12; margin-bottom: 12px;">
+        <svg width="48" height="48" viewBox="0 0 24 24"><path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-1.99 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-2-1.46c-1.19.69-2 1.99-2 3.46s.81 2.77 2 3.46V18H4v-2.54c1.19-.69 2-1.99 2-3.46s-.81-2.77-2-3.46V6h16v2.54z"/></svg>
+      </div>
       <h3 class="modal-title" style="margin-bottom: 8px;">Live Privada</h3>
       <p style="font-size: 0.85rem; color: #a0a0b0; margin-bottom: 20px;">
         Esta transmissão é exclusiva. Adquira o ticket para desbloquear.
       </p>
 
       <div style="background: #12121a; padding: 15px; border-radius: 16px; margin-bottom: 20px; border: 1px solid #2a2a3d;">
-        <span style="font-size: 0.8rem; color: #888899;">Valor do Ingresso:</span>
-        <div style="font-size: 1.5rem; font-weight: 800; color: #f39c12; margin-top: 4px;" id="modalTicketCost">
+        <span style="font-size: 0.78rem; color: #888899;">Valor do Ingresso:</span>
+        <div style="font-size: 1.4rem; font-weight: 800; color: #f39c12; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px;" id="modalTicketCost">
           50 Tickets
         </div>
       </div>
 
       <button type="button" class="btn btn-primary" id="btnBuyTicket" style="background: #f39c12; color: #121218;">
-        Comprar e Assistir 🔓
+        Comprar e Assistir
+        <svg class="icon-svg" width="16" height="16" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
       </button>
       <button type="button" class="btn btn-secondary" id="btnCloseTicketModal" style="margin-top: 8px;">
         Voltar
@@ -1141,12 +1178,19 @@
     let currentUser = { username: 'Anônimo', isAnon: true };
     let mediaStream = null;
     let isBroadcasting = false;
-    let unlockedPrivateLives = new Set(); // Guarda IDs de lives privadas desbloqueadas
+    let unlockedPrivateLives = new Set(); 
 
     let currentLiveConfig = {
       title: 'Transmissão Ao Vivo',
       isPrivate: false,
       ticketPrice: 50
+    };
+
+    // Ícones Vetoriais Reaproveitáveis
+    const svgIcons = {
+      eye: `<svg class="icon-svg" width="12" height="12" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`,
+      lock: `<svg class="icon-svg" width="12" height="12" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>`,
+      ticket: `<svg class="icon-svg" width="12" height="12" viewBox="0 0 24 24"><path d="M22 10V6c0-1.11-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-1.99 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-2-1.46c-1.19.69-2 1.99-2 3.46s.81 2.77 2 3.46V18H4v-2.54c1.19-.69 2-1.99 2-3.46s-.81-2.77-2-3.46V6h16v2.54z"/></svg>`
     };
 
     // Elementos Auth
@@ -1276,11 +1320,10 @@
 
     // Renderizar Live Real nas Interfaces
     function renderActiveLive() {
-      // 1. Ocultar mensagens de sem live
       document.getElementById('noLivesMsg').style.display = 'none';
       document.getElementById('noTrendingMsg').style.display = 'none';
 
-      // 2. Render Card no Feed
+      // 1. Render Card no Feed
       const livesGrid = document.getElementById('livesGrid');
       const card = document.createElement('div');
       card.className = 'live-card';
@@ -1288,8 +1331,8 @@
       card.innerHTML = `
         <div class="card-thumb">
           <div class="thumb-badge-top">
-            <span class="viewers-count">👁️ 1</span>
-            ${currentLiveConfig.isPrivate ? `<span class="badge-ticket">🔒 ${currentLiveConfig.ticketPrice} Tickets</span>` : `<span class="badge-live">AO VIVO</span>`}
+            <span class="viewers-count">${svgIcons.eye} 1</span>
+            ${currentLiveConfig.isPrivate ? `<span class="badge-ticket">${svgIcons.lock} ${currentLiveConfig.ticketPrice}</span>` : `<span class="badge-live">AO VIVO</span>`}
           </div>
           <video id="liveVideoFeedCard" autoplay playsinline muted></video>
           <div class="stream-title">${currentLiveConfig.title}</div>
@@ -1303,21 +1346,18 @@
         </div>
       `;
       
-      card.addEventListener('click', () => {
-        navBtnTrending.click(); // Vai para o modo TikTok ao clicar
-      });
-
+      card.addEventListener('click', () => navBtnTrending.click());
       livesGrid.prepend(card);
       document.getElementById('liveVideoFeedCard').srcObject = mediaStream;
 
-      // 3. Render Story Topo
+      // 2. Render Story Topo
       const storiesContainer = document.getElementById('storiesContainer');
       const story = document.createElement('div');
       story.className = 'story-item';
       story.id = 'myLiveStory';
       story.innerHTML = `
         <div class="avatar-wrapper ${currentLiveConfig.isPrivate ? 'private-live' : ''}">
-          <span class="badge-live-mini ${currentLiveConfig.isPrivate ? 'private' : ''}">${currentLiveConfig.isPrivate ? '🔒' : 'LIVE'}</span>
+          <span class="badge-live-mini ${currentLiveConfig.isPrivate ? 'private' : ''}">${currentLiveConfig.isPrivate ? svgIcons.lock : 'LIVE'}</span>
           <video id="storyVideoFeed" autoplay playsinline muted></video>
         </div>
         <span class="story-name">${currentUser.username}</span>
@@ -1326,7 +1366,7 @@
       storiesContainer.prepend(story);
       document.getElementById('storyVideoFeed').srcObject = mediaStream;
 
-      // 4. Render modelo TikTok em Tela Cheia na aba "Em Alta" (Conforme Imagem Enviada)
+      // 3. Render modelo TikTok em Tela Cheia na aba "Em Alta" (Conforme Imagem Enviada)
       const tiktokContainer = document.getElementById('tiktokContainer');
       const slide = document.createElement('div');
       slide.className = 'tiktok-slide';
@@ -1338,11 +1378,14 @@
         <!-- Bloqueio para Live Privada -->
         ${currentLiveConfig.isPrivate && !unlockedPrivateLives.has('myLive') ? `
           <div class="private-lock-overlay" id="privateOverlay">
-            <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
+            <div style="color: #f39c12; margin-bottom: 15px;">
+              <svg width="56" height="56" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            </div>
             <h2 style="font-size: 1.2rem; margin-bottom: 6px;">Live Privada</h2>
-            <p style="font-size: 0.85rem; color: #a0a0b0; margin-bottom: 20px;">Você precisa de um Ticket para acessar esta transmissão.</p>
+            <p style="font-size: 0.85rem; color: #a0a0b0; margin-bottom: 20px;">Adquira o ticket de acesso para desbloquear o vídeo.</p>
             <button class="btn btn-primary" id="btnUnlockInline" style="background: #f39c12; color: #121218; width: auto; padding: 12px 24px;">
-              Desbloquear por ${currentLiveConfig.ticketPrice} Tickets 🎟️
+              Desbloquear por ${currentLiveConfig.ticketPrice} Tickets
+              ${svgIcons.ticket}
             </button>
           </div>
         ` : ''}
@@ -1360,31 +1403,29 @@
             </div>
 
             <div class="live-status-pill">
-              <span class="viewers-count-text">👁️ 1</span>
+              <span class="viewers-count-text" style="display:flex; align-items:center; gap:4px;">${svgIcons.eye} 1</span>
               <span class="live-badge-red">Live</span>
             </div>
           </div>
 
           <!-- Área Inferior: Comentários Reais + Input -->
           <div class="live-bottom-area">
-            <div class="comments-container" id="commentsContainer">
-              <!-- Apenas comentários enviados por usuários reais entram aqui -->
-            </div>
+            <div class="comments-container" id="commentsContainer"></div>
 
             <div class="live-action-bar">
               <div class="chat-input-wrapper">
                 <input type="text" id="chatInput" placeholder="Comentar...">
-                <button class="btn-action-icon btn-send" id="btnSendChat">
-                  <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                <button class="btn-action-icon btn-send" id="btnSendChat" title="Enviar">
+                  <svg width="18" height="18" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                 </button>
               </div>
 
-              <button class="btn-action-icon">
-                <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+              <button class="btn-action-icon" title="Compartilhar">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
               </button>
 
-              <button class="btn-action-icon btn-heart" id="btnHeart">
-                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <button class="btn-action-icon btn-heart" id="btnHeart" title="Curtir">
+                <svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
               </button>
             </div>
           </div>
@@ -1423,7 +1464,7 @@
       const btnUnlockInline = slide.querySelector('#btnUnlockInline');
       if (btnUnlockInline) {
         btnUnlockInline.addEventListener('click', () => {
-          document.getElementById('modalTicketCost').textContent = `${currentLiveConfig.ticketPrice} Tickets`;
+          document.getElementById('modalTicketCost').innerHTML = `${currentLiveConfig.ticketPrice} Tickets ${svgIcons.ticket}`;
           document.getElementById('ticketPurchaseModal').classList.add('active');
         });
       }
