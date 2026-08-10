@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pijama Party - Live Streaming +18</title>
+  <!-- Biblioteca de Ícones Profissionais (Font Awesome 6) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ================= TELA DE AUTENTICAÇÃO ================= -->
+  <main class="welcome-card" id="authScreen">
+    <div class="brand-header">
+      <h1 class="app-title">PIJAMA <span>PARTY</span> <i class="fa-solid fa-fire badge-icon"></i></h1>
+      <p class="subtitle" id="cardSubtitle">Transmissões ao vivo e conteúdos exclusivos +18</p>
+    </div>
+
+    <!-- Etapa 1: Login / Escolha de Método -->
+    <div class="step active" id="step1">
+      <form class="auth-form" id="emailForm">
+        <div class="input-group">
+          <label for="email"><i class="fa-regular fa-envelope"></i> Entrar com E-mail</label>
+          <input type="email" id="email" placeholder="seu@email.com" required>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <span>Continuar com E-mail</span> <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </form>
+
+      <div class="divider">
+        <span>OU</span>
+      </div>
+
+      <button type="button" class="btn btn-anonymous" id="btnAnon">
+        <i class="fa-solid fa-user-secret"></i> Entrar como Anônimo
+      </button>
+    </div>
+
+    <!-- Etapa 2: Registro de Perfil -->
+    <div class="step" id="step2">
+      <form class="auth-form" id="registerForm">
+        <div class="input-group">
+          <label for="username"><i class="fa-regular fa-user"></i> Nome de Usuário</label>
+          <input type="text" id="username" placeholder="@seu.nome" required>
+        </div>
+
+        <div class="input-group">
+          <label for="gender"><i class="fa-solid fa-venus-mars"></i> Gênero</label>
+          <select id="gender" required>
+            <option value="" disabled selected>Selecione seu gênero</option>
+            <option value="Feminino">Feminino</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Outro">Outro / Prefiro não dizer</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label for="password"><i class="fa-solid fa-lock"></i> Senha</label>
+          <input type="password" id="password" placeholder="••••••••" required minlength="6">
+        </div>
+
+        <label class="checkbox-group">
+          <input type="checkbox" id="ageCheck" required>
+          <span>Declaro que tenho <strong class="age-badge">+18 ANOS</strong></span>
+        </label>
+
+        <button type="submit" class="btn btn-primary">
+          Entrar no App <i class="fa-solid fa-right-to-bracket"></i>
+        </button>
+        <button type="button" class="btn btn-secondary" id="btnBack">
+          <i class="fa-solid fa-chevron-left"></i> Voltar
+        </button>
+      </form>
+    </div>
+  </main>
+
+
+  <!-- ================= INTERFACE PRINCIPAL DO APP ================= -->
+  <div class="app-screen" id="appScreen">
+    <div class="app-container">
+
+      <!-- ABA 1: FEED INICIAL -->
+      <section class="tab-content active" id="tabHome">
+        <header class="header">
+          <div class="app-title logo-sm">PIJAMA<span>PARTY</span></div>
+          <div class="header-actions">
+            <button class="icon-btn" aria-label="Notificações">
+              <i class="fa-regular fa-bell"></i>
+            </button>
+          </div>
+        </header>
+
+        <!-- Carrossel de Stories / Criadores -->
+        <div class="stories-container" id="storiesContainer"></div>
+
+        <!-- Categorias -->
+        <div class="section-header">
+          <h2 class="section-title">Categorias</h2>
+          <a href="#" class="view-all">Ver tudo</a>
+        </div>
+
+        <div class="categories-bar">
+          <button class="category-chip active"><i class="fa-solid fa-fire"></i> Em Alta</button>
+          <button class="category-chip"><i class="fa-solid fa-crown"></i> Privado VIP</button>
+          <button class="category-chip"><i class="fa-solid fa-moon"></i> Pijama Room</button>
+          <button class="category-chip"><i class="fa-solid fa-gem"></i> Exclusivos</button>
+        </div>
+
+        <!-- Grid de Lives -->
+        <div class="lives-grid" id="livesGrid">
+          <div class="no-lives-msg" id="noLivesMsg">
+            <i class="fa-solid fa-video-slash no-lives-icon"></i>
+            Nenhuma transmissão ativa no momento.<br>
+            Toque no botão <strong>+</strong> abaixo para iniciar a sua!
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 2: MODO VERTICAL (ESTILO TIKTOK) -->
+      <section class="tab-content" id="tabTrending">
+        <div class="tiktok-container" id="tiktokContainer">
+          <div class="no-lives-msg" id="noTrendingMsg">
+            <i class="fa-solid fa-border-all no-lives-icon"></i>
+            Nenhuma live em destaque.<br>Abra sua câmera e comece a transmitir agora!
+          </div>
+        </div>
+      </section>
+
+      <!-- NAVBAR INFERIOR FIXA -->
+      <nav class="navbar">
+        <button class="nav-item active" id="navBtnHome">
+          <i class="fa-solid fa-house"></i>
+          <span>Início</span>
+        </button>
+        
+        <button class="nav-item" id="navBtnTrending">
+          <i class="fa-solid fa-bolt"></i>
+          <span>Em Alta</span>
+        </button>
+
+        <!-- Botão Ação Central -->
+        <button class="fab-btn" id="startLiveBtn" aria-label="Iniciar Transmissão">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+
+        <button class="nav-item">
+          <i class="fa-solid fa-comment-dots"></i>
+          <span>Chats</span>
+        </button>
+
+        <button class="nav-item">
+          <i class="fa-solid fa-user"></i>
+          <span id="navProfileName">Perfil</span>
+        </button>
+      </nav>
+
+    </div>
+  </div>
+
+
+  <!-- ================= MODAL: CONFIGURAR LIVE ================= -->
+  <div class="modal-overlay" id="setupLiveModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-video"></i> Transmitir Ao Vivo</h3>
+        <button class="modal-close" id="btnCloseSetupModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="input-group">
+        <label for="liveTitleInput"><i class="fa-solid fa-heading"></i> Título da Live</label>
+        <input type="text" id="liveTitleInput" placeholder="Ex: Batendo papo na madrugada" value="Minha Live Ao Vivo">
+      </div>
+
+      <div class="privacy-section">
+        <label class="input-label"><i class="fa-solid fa-shield-halved"></i> Modo de Privacidade</label>
+        
+        <div class="live-type-grid">
+          <div class="type-option selected" id="optPublic">
+            <div class="type-icon"><i class="fa-solid fa-globe"></i></div>
+            <div class="type-title">Pública</div>
+            <div class="type-desc">Livre para todos assistirem</div>
+          </div>
+
+          <div class="type-option" id="optPrivate">
+            <div class="type-icon"><i class="fa-solid fa-lock"></i></div>
+            <div class="type-title">Privada VIP</div>
+            <div class="type-desc">Acesso exclusivo com Tickets</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-group" id="ticketInputGroup" style="display: none;">
+        <label for="ticketPriceInput"><i class="fa-solid fa-ticket"></i> Ingresso (Tickets)</label>
+        <input type="number" id="ticketPriceInput" value="50" min="1">
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="btnCancelLiveConfig">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btnConfirmStartLive">
+          Entrar Ao Vivo <i class="fa-solid fa-broadcast-tower"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: INGRESSO VIP ================= -->
+  <div class="modal-overlay" id="ticketPurchaseModal">
+    <div class="modal-card text-center">
+      <div class="modal-hero-icon"><i class="fa-solid fa-ticket"></i></div>
+      <h3 class="modal-title">Transmissão VIP Privada</h3>
+      <p class="modal-subtext">Conteúdo exclusivo! Adquira o ingresso para desbloquear esta sala.</p>
+
+      <div class="ticket-badge-card">
+        <span class="ticket-badge-label">Valor do Ingresso</span>
+        <div class="ticket-badge-value" id="modalTicketCost">50 Tickets</div>
+      </div>
+
+      <button type="button" class="btn btn-primary btn-gold" id="btnBuyTicket">
+        Desbloquear Agora <i class="fa-solid fa-key"></i>
+      </button>
+      <button type="button" class="btn btn-secondary" id="btnCloseTicketModal">
+        Voltar
+      </button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
