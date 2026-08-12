@@ -334,15 +334,16 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); box-sh
 .post-comments-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 8px;
-  max-height: 120px;
+  gap: 8px;
+  margin-bottom: 12px;
+  max-height: 150px;
   overflow-y: auto;
 }
 
 .post-comment-item {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #ccc;
+  line-height: 1.3;
 }
 
 .post-comment-item strong {
@@ -359,6 +360,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); box-sh
   font-size: 0.8rem;
   padding: 6px 10px;
   border-radius: 8px;
+  flex: 1;
 }
 
 .section-heading { display: flex; align-items: flex-end; justify-content: space-between; padding: 16px 20px 10px; }
