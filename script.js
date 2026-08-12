@@ -656,7 +656,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* ================= PUBLICAR FOTOS (CORRIGIDO) ================= */
+  /* ================= PUBLICAR FOTOS E COMENTÁRIOS (CORRIGIDO) ================= */
   const createPostModal = $("#createPostModal");
 
   function openCreatePostModal() {
@@ -757,7 +757,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* ================= CARREGAR FEED DE FOTOS ================= */
+  async function loadPostComments(postId) {
+    if (!db) return;
+    const list = $(`#comments-${postId}`);
+    if (!list) return;
+
+    const { data } = await db.from("comments")
+      .select("*, profiles(id, username, display_name, is_verified, is_developer)")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true });
+
+    if (data && data.length > 0) {
+      list.innerHTML = data.map(c => {
+        const author = c.profiles || { username: "usuario" };
+        return `
+          <div class="post-comment-item">
+            <strong><span class="name-text">${escapeHTML(author.display_name || author.username)}</span>${getBadgesHTML(author)}</strong> 
+            ${escapeHTML(c.content)}
+          </div>
+        `;
+      }).join("");
+    } else {
+      list.innerHTML = "";
+    }
+    list.scrollTop = list.scrollHeight;
+  }
+
   async function loadPosts() {
     const feed = $("#feedPosts");
     if (!feed) return;
@@ -787,6 +812,8 @@ document.addEventListener("DOMContentLoaded", () => {
     feed.innerHTML = posts.map(post => {
       const author = post.profiles || { username: "usuario", display_name: "Usuário" };
       const avatarHTML = renderAvatarHTML(author, "small");
+      const isOwner = state.user && post.user_id === state.user.id;
+      const editBtnHTML = isOwner ? `<button class="post-action-btn btn-edit-post" data-post-id="${post.id}" aria-label="Editar Publicação"><i class="fa-solid fa-pen" style="font-size:1.1rem"></i></button>` : '';
 
       return `
         <article class="post-card" data-post-id="${post.id}">
@@ -815,6 +842,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <button class="post-action-btn" aria-label="Compartilhar">
               <i class="fa-regular fa-paper-plane"></i>
             </button>
+            ${editBtnHTML}
           </div>
 
           <div class="post-likes">
@@ -822,10 +850,11 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
 
           <div class="post-caption">
-            <strong>@${escapeHTML(author.username)}</strong>${escapeHTML(post.caption || "")}
+            <strong>@${escapeHTML(author.username)}</strong><span class="post-caption-text">${escapeHTML(post.caption || "")}</span>
           </div>
 
           <div class="post-comments-section">
+            <div class="post-comments-list" id="comments-${post.id}"></div>
             <form class="post-comment-form" data-post-id="${post.id}">
               <input type="text" placeholder="Adicione um comentário..." required autocomplete="off">
               <button class="btn primary compact" type="submit">Enviar</button>
@@ -863,6 +892,45 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
+    $$(".btn-edit-post", feed).forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const postCard = btn.closest(".post-card");
+        const captionEl = postCard.querySelector(".post-caption-text");
+        const currentCaption = captionEl ? captionEl.textContent : "";
+        const newCaption = prompt("Editar legenda:", currentCaption);
+        
+        if (newCaption !== null && newCaption !== currentCaption) {
+          if (db) {
+            await db.from("posts").update({ caption: newCaption.trim() }).eq("id", btn.dataset.postId);
+            if (captionEl) captionEl.textContent = newCaption.trim();
+            toast("Publicação atualizada!");
+          }
+        }
+      });
+    });
+
+    $$(".post-comment-form", feed).forEach(form => {
+      const postId = form.dataset.postId;
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (state.visitor) return toast("Cadastre-se para comentar.");
+        const input = form.querySelector("input");
+        const content = input.value.trim();
+        if (!content || !db) return;
+
+        input.value = "";
+        
+        await db.from("comments").insert({
+          post_id: postId,
+          user_id: state.user.id,
+          content: content
+        });
+        
+        loadPostComments(postId);
+      });
+      loadPostComments(postId);
+    });
+
     $$(".post-author", feed).forEach(authorEl => {
       authorEl.addEventListener("click", () => {
         const post = state.posts.find(p => p.id === authorEl.closest(".post-card").dataset.postId);
@@ -871,9 +939,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ================= VISUALIZAR PERFIL DE OUTRO USUÁRIO ================= */
+  /* ================= VISUALIZAR PERFIL DE OUTRO USUÁRIO (INFO E POSTS REAIS) ================= */
   async function openUserProfile(targetUser) {
     if (!targetUser) return;
+    
+    if (db) {
+      const { data: freshProfile } = await db.from("profiles").select("*").eq("id", targetUser.id).single();
+      if (freshProfile) {
+        targetUser = { ...targetUser, ...freshProfile };
+      }
+    }
+    
     state.activeOtherUser = targetUser;
 
     const avatarWrapper = $("#otherAvatarWrapper");
@@ -961,6 +1037,18 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       if (btnVerified) btnVerified.classList.add("hidden");
       if (btnDeveloper) btnDeveloper.classList.add("hidden");
+    }
+    
+    const otherProfileContent = $("#otherProfileContent");
+    if (otherProfileContent && db) {
+      const { data: userPosts } = await db.from("posts").select("*").eq("user_id", targetUser.id).order("created_at", { ascending: false });
+      if (userPosts && userPosts.length > 0) {
+        otherProfileContent.innerHTML = `<div class="photo-feed">` + userPosts.map(post => `
+          <div class="post-preview-area" style="height: 180px; background-image: url('${escapeHTML(post.image_url)}'); background-size: cover; background-position: center; border: none; border-radius: 12px; margin-bottom: 10px;"></div>
+        `).join("") + `</div>`;
+      } else {
+        otherProfileContent.innerHTML = `<div class="empty-state"><i class="fa-regular fa-image"></i><p>Nenhuma publicação ainda.</p></div>`;
+      }
     }
 
     navigateTo("pageUserProfile");
@@ -1278,7 +1366,29 @@ document.addEventListener("DOMContentLoaded", () => {
     input.value = "";
   });
 
-  /* ================= BATE-PAPO / CHAT DIRETO ================= */
+  /* ================= BATE-PAPO / CHAT DIRETO E REAL-TIME ================= */
+  async function loadChatMessages(targetUser) {
+    const messagesDiv = $("#messages");
+    if (!messagesDiv || !db) return;
+    
+    const { data, error } = await db.from("messages")
+      .select("*")
+      .or(`and(sender_id.eq.${state.user.id},receiver_id.eq.${targetUser.id}),and(sender_id.eq.${targetUser.id},receiver_id.eq.${state.user.id})`)
+      .order("created_at", { ascending: true });
+
+    if (error || !data || data.length === 0) {
+      messagesDiv.innerHTML = `<div class="empty-state"><p>Início da conversa com @${escapeHTML(targetUser.username)}.</p></div>`;
+      return;
+    }
+    
+    messagesDiv.innerHTML = data.map(msg => {
+      const isMine = msg.sender_id === state.user.id;
+      return `<div class="message ${isMine ? 'mine' : ''}"><div>${escapeHTML(msg.content)}</div><small>${formatTimeAgo(msg.created_at)}</small></div>`;
+    }).join("");
+    
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
   async function loadChats() {
     const chatList = $("#chatList");
     if (!chatList) return;
@@ -1288,7 +1398,26 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const { data: users } = await db.from("profiles").select("*").neq("id", state.user.id).limit(10);
+    const { data: msgs } = await db.from("messages")
+      .select("sender_id, receiver_id")
+      .or(`sender_id.eq.${state.user.id},receiver_id.eq.${state.user.id}`);
+
+    let userIds = new Set();
+    if (msgs) {
+      msgs.forEach(m => {
+        if (m.sender_id !== state.user.id) userIds.add(m.sender_id);
+        if (m.receiver_id !== state.user.id) userIds.add(m.receiver_id);
+      });
+    }
+
+    if (userIds.size === 0) {
+      chatList.innerHTML = `<div class="empty-state"><i class="fa-regular fa-comments"></i><p>Nenhuma conversa iniciada. Encontre amigos para conversar!</p></div>`;
+      return;
+    }
+
+    const { data: users } = await db.from("profiles")
+      .select("*, is_verified, is_developer")
+      .in("id", Array.from(userIds));
 
     if (!users || users.length === 0) {
       chatList.innerHTML = `<div class="empty-state"><i class="fa-regular fa-comments"></i><p>Nenhum usuário disponível para conversar.</p></div>`;
@@ -1328,17 +1457,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const messagesDiv = $("#messages");
     if (messagesDiv) {
-      messagesDiv.innerHTML = `<div class="empty-state"><p>Início da conversa com @${escapeHTML(targetUser.username)}.</p></div>`;
+      messagesDiv.innerHTML = `<div class="empty-state"><p>Carregando conversa com @${escapeHTML(targetUser.username)}...</p></div>`;
     }
 
     navigateTo("pageChatRoom");
+    loadChatMessages(targetUser);
   }
 
-  on("#messageForm", "submit", (e) => {
+  on("#messageForm", "submit", async (e) => {
     e.preventDefault();
     const input = $("#messageInput");
     const messagesDiv = $("#messages");
-    if (!input || !input.value.trim() || !messagesDiv) return;
+    if (!input || !input.value.trim() || !messagesDiv || !state.activeChatUser) return;
 
     const val = input.value.trim();
     const emptyState = messagesDiv.querySelector(".empty-state");
@@ -1351,6 +1481,14 @@ document.addEventListener("DOMContentLoaded", () => {
     messagesDiv.appendChild(msgEl);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
     input.value = "";
+
+    if (db) {
+      await db.from("messages").insert({
+        sender_id: state.user.id,
+        receiver_id: state.activeChatUser.id,
+        content: val
+      });
+    }
   });
 
   /* ================= PESQUISA DE USUÁRIOS ================= */
@@ -1369,7 +1507,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const { data: users, error } = await db.from("profiles").select("*").or(`username.ilike.%${query}%,display_name.ilike.%${query}%`).limit(10);
+    const { data: users, error } = await db.from("profiles").select("*, is_verified, is_developer").or(`username.ilike.%${query}%,display_name.ilike.%${query}%`).limit(10);
 
     if (error || !users || users.length === 0) {
       resultsContainer.innerHTML = `<p class="empty-state">Nenhum resultado para "${escapeHTML(query)}".</p>`;
