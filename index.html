@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f0f12">
+  <meta name="description" content="Pijama Party — plataforma de comunidade, feed de fotos e transmissões ao vivo.">
+  <title>Pijama Party — Community & Live</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- ================= AUTH ================= -->
+  <main class="auth-screen" id="authScreen">
+    <section class="auth-card">
+      <div class="brand">
+        <h1>PIJAMA<span>PARTY</span> <i class="fa-solid fa-fire"></i></h1>
+        <p>Comunidade, feed de fotos e transmissões ao vivo.</p>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-auth-tab="login">Entrar</button>
+        <button class="auth-tab" data-auth-tab="register">Criar conta</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="loginForm" class="auth-form">
+        <label>
+          E-mail
+          <input id="loginEmail" type="email" autocomplete="email" required>
+        </label>
+        <label>
+          Senha
+          <input id="loginPassword" type="password" autocomplete="current-password" minlength="6" required>
+        </label>
+        <button class="btn primary" type="submit">Entrar <i class="fa-solid fa-arrow-right"></i></button>
+        <button class="btn ghost" type="button" id="btnAnonymous">
+          <i class="fa-solid fa-user-secret"></i> Entrar como Anônimo
+        </button>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form id="registerForm" class="auth-form hidden">
+        <label>
+          E-mail
+          <input id="registerEmail" type="email" autocomplete="email" required>
+        </label>
+        <label>
+          Senha
+          <input id="registerPassword" type="password" autocomplete="new-password" minlength="6" required>
+        </label>
+        <label>
+          Nome de usuário
+          <input id="registerUsername" type="text" maxlength="20" placeholder="ex: meu_usuario" autocomplete="username" required>
+        </label>
+        <label>
+          Gênero
+          <select id="registerGender" required>
+            <option value="" disabled selected>Selecione o gênero</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Feminino">Feminino</option>
+            <option value="Outro">Outro</option>
+            <option value="Preferir não informar">Preferir não informar</option>
+          </select>
+        </label>
+
+        <label class="check-row">
+          <input id="registerTerms" type="checkbox" required>
+          <span>Li e aceito os termos da plataforma.</span>
+        </label>
+        <button class="btn primary" type="submit">Criar conta <i class="fa-solid fa-user-plus"></i></button>
+      </form>
+    </section>
+  </main>
+
+  <!-- ================= APP ================= -->
+  <div class="app-screen hidden" id="appScreen">
+    <div class="app-shell">
+
+      <!-- HOME PAGE (FEED DE FOTOS) -->
+      <section class="page active" id="pageHome">
+        <header class="topbar">
+          <div class="logo">PIJAMA<span>PARTY</span></div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="icon-btn" id="btnCreatePostHeader" aria-label="Nova Publicação" title="Publicar Foto">
+              <i class="fa-regular fa-square-plus"></i>
+            </button>
+            <button class="icon-btn" id="btnSearchUsersHeader" aria-label="Pesquisar Usuários" title="Pesquisar Usuários">
+              <i class="fa-solid fa-user-gear"></i>
+            </button>
+            <button class="icon-btn" id="btnNotifications" aria-label="Notificações">
+              <i class="fa-regular fa-bell"></i>
+              <span class="notification-dot hidden" id="notificationDot"></span>
+            </button>
+          </div>
+        </header>
+
+        <div class="stories" id="stories"></div>
+
+        <div class="create-post-bar" id="createPostTrigger">
+          <div class="avatar small" id="feedUserAvatar">U</div>
+          <input type="text" placeholder="No que você está pensando? Compartilhe uma foto..." readonly>
+          <button class="btn primary compact"><i class="fa-solid fa-image"></i> Foto</button>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">FEED</span>
+            <h2>Publicações Recentes</h2>
+          </div>
+          <button class="text-btn" id="btnSearchFromHome">Pesquisar</button>
+        </div>
+
+        <div class="photo-feed" id="feedPosts"></div>
+      </section>
+
+      <!-- TRENDING PAGE (LIVES ESTILO TIKTOK) -->
+      <section class="page" id="pageTrending">
+        <header class="page-header sticky-header">
+          <div>
+            <span class="eyebrow">EM DIRETO</span>
+            <h2>Lives Em Alta 🔥</h2>
+          </div>
+        </header>
+        <div class="tiktok-feed" id="trendingList"></div>
+      </section>
+
+      <!-- SEARCH PAGE -->
+      <section class="page" id="pageSearch">
+        <header class="page-header">
+          <h2>Pesquisar</h2>
+        </header>
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="searchInput" type="search" placeholder="Usuários, posts ou categorias..." autocomplete="off">
+        </div>
+        <div id="searchResults" class="search-results"></div>
+      </section>
+
+      <!-- CHATS LIST PAGE -->
+      <section class="page" id="pageChats">
+        <header class="page-header">
+          <div>
+            <span class="eyebrow">MENSAGENS</span>
+            <h2>Chats</h2>
+          </div>
+        </header>
+        <div id="chatList" class="chat-list"></div>
+      </section>
+
+      <!-- CHAT ROOM PAGE -->
+      <section class="page" id="pageChatRoom">
+        <header class="chat-header">
+          <button class="icon-btn" id="btnBackChats" aria-label="Voltar"><i class="fa-solid fa-arrow-left"></i></button>
+          <div>
+            <strong id="chatRoomName">Conversa</strong>
+            <small id="chatRoomStatus">online</small>
+          </div>
+          <button class="icon-btn" id="btnChatOptions" aria-label="Opções"><i class="fa-solid fa-ellipsis"></i></button>
+        </header>
+        <div class="messages" id="messages"></div>
+        <form class="message-form" id="messageForm">
+          <input id="messageInput" maxlength="500" placeholder="Escreva uma mensagem..." autocomplete="off" required>
+          <button class="send-btn" type="submit" aria-label="Enviar"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+      </section>
+
+      <!-- PROFILE PAGE -->
+      <section class="page" id="pageProfile">
+        <header class="page-header">
+          <h2>Meu perfil</h2>
+          <button class="icon-btn" id="btnSettings" aria-label="Configurações"><i class="fa-solid fa-gear"></i></button>
+        </header>
+
+        <div class="profile-cover" id="profileBanner"></div>
+        <div class="profile-main">
+          <div class="avatar-live-wrapper" id="profileAvatarWrapper">
+            <div class="avatar large" id="profileAvatar">U</div>
+          </div>
+          <h2 id="profileName">Usuário</h2>
+          <p id="profileUsername">@usuario</p>
+          <p class="bio" id="profileBio">Bem-vindo ao Pijama Party!</p>
+
+          <div class="profile-actions">
+            <button class="btn secondary" id="btnEditProfile">Editar perfil</button>
+            <button class="btn secondary icon-square" id="btnShareProfile" aria-label="Compartilhar perfil">
+              <i class="fa-solid fa-share-nodes"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div><strong id="followersCount">0</strong><span>Seguidores</span></div>
+          <div><strong id="followingCount">0</strong><span>Seguindo</span></div>
+          <div><strong id="likesCount">0</strong><span>Curtidas</span></div>
+        </div>
+
+        <div class="profile-tabs" id="profileTabs">
+          <button class="active" data-profile-tab="posts">Publicações</button>
+          <button data-profile-tab="lives">Lives</button>
+          <button data-profile-tab="replays">Replays</button>
+        </div>
+        <div id="profileContent" class="profile-content"></div>
+
+        <button class="btn danger full" id="btnLogout">Sair da conta</button>
+      </section>
+
+      <!-- OTHER USER PROFILE PAGE -->
+      <section class="page" id="pageUserProfile">
+        <header class="page-header">
+          <button class="icon-btn" id="btnBackUserProfile" aria-label="Voltar"><i class="fa-solid fa-arrow-left"></i></button>
+          <h2>Perfil</h2>
+          <span></span>
+        </header>
+        <div class="profile-cover" id="otherBanner"></div>
+        <div class="profile-main">
+          <div class="avatar-live-wrapper" id="otherAvatarWrapper">
+            <div class="avatar large" id="otherAvatar">U</div>
+          </div>
+          <h2 id="otherName">Usuário</h2>
+          <p id="otherUsername">@usuario</p>
+          <p class="bio" id="otherBio"></p>
+          <div class="profile-actions" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn primary" id="btnFollowUser">Seguir</button>
+            <button class="btn secondary" id="btnMessageUser"><i class="fa-solid fa-paper-plane"></i> Mensagem</button>
+            <button class="btn secondary hidden" id="btnToggleVerified"><i class="fa-solid fa-circle-check"></i> Alternar Verificado</button>
+            <button class="btn secondary hidden" id="btnToggleDeveloper"><i class="fa-solid fa-code"></i> Alternar Developer</button>
+          </div>
+        </div>
+        <div class="stats">
+          <div><strong id="otherFollowers">0</strong><span>Seguidores</span></div>
+          <div><strong id="otherFollowing">0</strong><span>Seguindo</span></div>
+          <div><strong id="otherLikes">0</strong><span>Curtidas</span></div>
+        </div>
+        <div id="otherProfileContent" class="profile-content"></div>
+      </section>
+
+      <!-- NOTIFICATIONS PAGE -->
+      <section class="page" id="pageNotifications">
+        <header class="page-header">
+          <h2>Notificações</h2>
+          <button class="text-btn" id="btnMarkNotifications">Marcar lidas</button>
+        </header>
+        <div id="notificationsList" class="notifications-list"></div>
+      </section>
+
+      <!-- SETTINGS PAGE -->
+      <section class="page" id="pageSettings">
+        <header class="page-header">
+          <button class="icon-btn" id="btnBackSettings" aria-label="Voltar"><i class="fa-solid fa-arrow-left"></i></button>
+          <h2>Configurações</h2>
+          <span></span>
+        </header>
+        <div class="settings-list">
+          <button type="button" data-setting="profile"><i class="fa-regular fa-user"></i><span>Editar perfil</span><i class="fa-solid fa-chevron-right"></i></button>
+          <button type="button" data-setting="privacy"><i class="fa-solid fa-shield-halved"></i><span>Privacidade</span><i class="fa-solid fa-chevron-right"></i></button>
+          <button type="button" data-setting="notifications"><i class="fa-regular fa-bell"></i><span>Notificações</span><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+      </section>
+
+      <!-- LIVE ROOM PAGE (FULLSCREEN 100% PARA DISPOSITIVOS MÓVEIS) -->
+      <section class="page live-room" id="pageLiveRoom">
+        <div class="live-stage">
+          <button class="floating-back" id="btnLeaveLive" aria-label="Sair"><i class="fa-solid fa-arrow-left"></i></button>
+
+          <div class="live-top-info">
+            <span class="live-indicator">AO VIVO</span>
+            <span id="liveViewerCount">0 espectadores</span>
+          </div>
+
+          <div class="live-preview" id="livePreview">
+            <video id="liveVideo" autoplay playsinline muted class="hidden"></video>
+            <div class="camera-placeholder" id="liveCameraPlaceholder">
+              <i class="fa-solid fa-tower-broadcast"></i>
+              <span>Transmissão ao Vivo Ativa</span>
+            </div>
+          </div>
+
+          <div class="live-overlay-container">
+            <div class="live-info-panel">
+              <h2 id="liveRoomTitle">Minha transmissão</h2>
+              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+                <button class="host-pill" id="liveHostButton">Criador</button>
+                <span id="liveRoomCategory" style="color: var(--primary); font-size: 0.75rem; font-weight: 700;">Bate-papo</span>
+              </div>
+            </div>
+
+            <div class="live-chat" id="liveChat"></div>
+
+            <form class="message-form live-message-form" id="liveMessageForm">
+              <input id="liveMessageInput" maxlength="300" placeholder="Escreva no chat..." required autocomplete="off">
+              <button class="send-btn" type="submit" aria-label="Enviar"><i class="fa-solid fa-paper-plane"></i></button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- BOTTOM NAVBAR -->
+      <nav class="navbar" id="navbar">
+        <button class="nav-item active" data-page="pageHome">
+          <i class="fa-solid fa-house"></i><span>Início</span>
+        </button>
+        <button class="nav-item" data-page="pageTrending">
+          <i class="fa-solid fa-fire"></i><span>Em alta</span>
+        </button>
+        <button class="fab" id="startLiveButton" aria-label="Criar transmissão">
+          <i class="fa-solid fa-video"></i>
+        </button>
+        <button class="nav-item" data-page="pageChats">
+          <i class="fa-solid fa-comment-dots"></i><span>Chats</span>
+        </button>
+        <button class="nav-item" data-page="pageProfile">
+          <i class="fa-solid fa-user"></i><span>Perfil</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ================= EDIT PROFILE MODAL ================= -->
+  <div class="modal" id="editProfileModal" inert>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Editar perfil</h2>
+        <button class="icon-btn" id="closeEditProfileModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="editProfileForm">
+        <div class="edit-preview-card">
+          <div class="preview-banner" id="previewBanner" onclick="document.getElementById('editBannerFile').click()">
+            <div class="preview-overlay">
+              <i class="fa-solid fa-camera"></i>
+              <span>Alterar Banner</span>
+            </div>
+          </div>
+
+          <div class="preview-avatar-wrapper">
+            <div class="preview-avatar" id="previewAvatar" onclick="document.getElementById('editAvatarFile').click()">
+              <span id="previewAvatarText"></span>
+              <div class="avatar-overlay">
+                <i class="fa-solid fa-camera"></i>
+              </div>
+            </div>
+          </div>
+
+          <input type="file" id="editAvatarFile" accept="image/*" style="display:none;">
+          <input type="file" id="editBannerFile" accept="image/*" style="display:none;">
+        </div>
+
+        <div class="form-group" style="margin-top: 35px;">
+          <label for="editDisplayNameInput">Nome de exibição</label>
+          <input type="text" id="editDisplayNameInput" placeholder="Seu nome">
+        </div>
+
+        <div class="form-group">
+          <label for="editBioInput">Bio / Apresentação</label>
+          <textarea id="editBioInput" placeholder="Fale sobre você..."></textarea>
+        </div>
+
+        <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 15px;">
+          <button type="button" class="btn secondary" id="cancelEditProfile" style="flex:1;">Cancelar</button>
+          <button type="submit" class="btn primary" id="saveProfileBtn" style="flex:1;">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= CREATE POST MODAL ================= -->
+  <div class="modal" id="createPostModal" inert>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Criar Publicação</h2>
+        <button class="icon-btn" id="closeCreatePostModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="createPostForm">
+        <div class="post-preview-area" id="postImagePreviewArea" onclick="document.getElementById('postImageFile').click()">
+          <i class="fa-solid fa-cloud-arrow-up" id="postUploadIcon"></i>
+          <span id="postUploadText">Clique para selecionar uma foto</span>
+          <img id="postImagePreview" class="hidden" alt="Pré-visualização">
+        </div>
+        <input type="file" id="postImageFile" accept="image/*" style="display:none;" required>
+
+        <div class="form-group">
+          <label for="postCaptionInput">Legenda da foto</label>
+          <textarea id="postCaptionInput" placeholder="Escreva algo sobre esta foto..." required></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn secondary" id="cancelCreatePost">Cancelar</button>
+          <button type="submit" class="btn primary" id="btnPublishPost">Publicar <i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= LIVE SETUP MODAL ================= -->
+  <div class="modal" id="liveSetupModal" inert>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Nova transmissão</h2>
+        <button class="icon-btn" id="closeLiveModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="liveSetupForm">
+        <label>
+          Título da Live
+          <input id="liveTitle" maxlength="80" value="Minha transmissão ao vivo" required>
+        </label>
+
+        <label>
+          Categoria
+          <select id="liveCategory">
+            <option value="chat">Bate-papo</option>
+            <option value="gaming">Gaming</option>
+            <option value="music">Música</option>
+            <option value="creative">Criatividade</option>
+          </select>
+        </label>
+
+        <div class="choice-grid">
+          <button type="button" class="choice active" data-visibility="public">
+            <i class="fa-solid fa-globe"></i>
+            <strong>Pública</strong>
+            <small>Qualquer pessoa pode assistir.</small>
+          </button>
+          <button type="button" class="choice" data-visibility="private">
+            <i class="fa-solid fa-lock"></i>
+            <strong>Privada</strong>
+            <small>Acesso controlado pelo criador.</small>
+          </button>
+        </div>
+
+        <label class="check-row">
+          <input id="enableChat" type="checkbox" checked>
+          <span>Permitir mensagens no chat</span>
+        </label>
+
+        <div class="modal-actions">
+          <button type="button" class="btn secondary" id="cancelLive">Cancelar</button>
+          <button type="submit" class="btn primary">Iniciar Live <i class="fa-solid fa-tower-broadcast"></i></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= STORY VIEWER ================= -->
+  <div class="story-viewer hidden" id="storyViewer">
+    <button class="story-close" id="closeStoryViewer" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+    <div class="story-progress"><span id="storyProgressBar"></span></div>
+    <div class="story-author" id="storyAuthor"></div>
+    <img id="storyImage" alt="Story">
+    <button class="story-next" id="storyNext" aria-label="Próximo"><i class="fa-solid fa-chevron-right"></i></button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
