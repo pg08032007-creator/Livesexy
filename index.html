@@ -91,7 +91,7 @@
               <i class="fa-regular fa-square-plus"></i>
             </button>
             <button class="icon-btn" id="btnSearchUsersHeader" aria-label="Pesquisar Usuários" title="Pesquisar Usuários">
-              <i class="fa-solid fa-user-gear"></i>
+              <i class="fa-solid fa-magnifying-glass"></i>
             </button>
             <button class="icon-btn" id="btnNotifications" aria-label="Notificações">
               <i class="fa-regular fa-bell"></i>
@@ -113,7 +113,7 @@
             <span class="eyebrow">FEED</span>
             <h2>Publicações Recentes</h2>
           </div>
-          <button class="text-btn" id="btnSearchFromHome">Pesquisar</button>
+          <button class="text-btn" id="btnSearchFromHome"><i class="fa-solid fa-magnifying-glass" style="font-size: 1.15rem;"></i></button>
         </div>
 
         <div class="photo-feed" id="feedPosts"></div>
@@ -237,6 +237,10 @@
           <div><strong id="otherFollowing">0</strong><span>Seguindo</span></div>
           <div><strong id="otherLikes">0</strong><span>Curtidas</span></div>
         </div>
+        
+        <div class="profile-tabs" id="otherProfileTabs">
+          <button class="active" data-profile-tab="posts">Publicações</button>
+        </div>
         <div id="otherProfileContent" class="profile-content"></div>
       </section>
 
@@ -244,9 +248,8 @@
       <section class="page" id="pageNotifications">
         <header class="page-header">
           <h2>Notificações</h2>
-          <button class="text-btn" id="btnMarkNotifications">Marcar lidas</button>
         </header>
-        <div id="notificationsList" class="notifications-list"></div>
+        <div id="notificationsList"></div>
       </section>
 
       <!-- SETTINGS PAGE -->
@@ -256,205 +259,181 @@
           <h2>Configurações</h2>
           <span></span>
         </header>
-        <div class="settings-list">
-          <button type="button" data-setting="profile"><i class="fa-regular fa-user"></i><span>Editar perfil</span><i class="fa-solid fa-chevron-right"></i></button>
-          <button type="button" data-setting="privacy"><i class="fa-solid fa-shield-halved"></i><span>Privacidade</span><i class="fa-solid fa-chevron-right"></i></button>
-          <button type="button" data-setting="notifications"><i class="fa-regular fa-bell"></i><span>Notificações</span><i class="fa-solid fa-chevron-right"></i></button>
-        </div>
-      </section>
-
-      <!-- LIVE ROOM PAGE (FULLSCREEN 100% PARA DISPOSITIVOS MÓVEIS) -->
-      <section class="page live-room" id="pageLiveRoom">
-        <div class="live-stage">
-          <button class="floating-back" id="btnLeaveLive" aria-label="Sair"><i class="fa-solid fa-arrow-left"></i></button>
-
-          <div class="live-top-info">
-            <span class="live-indicator">AO VIVO</span>
-            <span id="liveViewerCount">0 espectadores</span>
-          </div>
-
-          <div class="live-preview" id="livePreview">
-            <video id="liveVideo" autoplay playsinline muted class="hidden"></video>
-            <div class="camera-placeholder" id="liveCameraPlaceholder">
-              <i class="fa-solid fa-tower-broadcast"></i>
-              <span>Transmissão ao Vivo Ativa</span>
-            </div>
-          </div>
-
-          <div class="live-overlay-container">
-            <div class="live-info-panel">
-              <h2 id="liveRoomTitle">Minha transmissão</h2>
-              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
-                <button class="host-pill" id="liveHostButton">Criador</button>
-                <span id="liveRoomCategory" style="color: var(--primary); font-size: 0.75rem; font-weight: 700;">Bate-papo</span>
-              </div>
-            </div>
-
-            <div class="live-chat" id="liveChat"></div>
-
-            <form class="message-form live-message-form" id="liveMessageForm">
-              <input id="liveMessageInput" maxlength="300" placeholder="Escreva no chat..." required autocomplete="off">
-              <button class="send-btn" type="submit" aria-label="Enviar"><i class="fa-solid fa-paper-plane"></i></button>
-            </form>
-          </div>
+        <div class="settings-list" id="settingsList">
+          <button data-setting="profile"><i class="fa-solid fa-user-pen"></i> Editar Perfil <i class="fa-solid fa-chevron-right" style="margin-left:auto; color:var(--muted)"></i></button>
+          <button data-setting="account"><i class="fa-solid fa-shield-halved"></i> Segurança <i class="fa-solid fa-chevron-right" style="margin-left:auto; color:var(--muted)"></i></button>
+          <button data-setting="privacy"><i class="fa-solid fa-lock"></i> Privacidade <i class="fa-solid fa-chevron-right" style="margin-left:auto; color:var(--muted)"></i></button>
+          <button data-setting="theme"><i class="fa-solid fa-palette"></i> Aparência <i class="fa-solid fa-chevron-right" style="margin-left:auto; color:var(--muted)"></i></button>
+          <button data-setting="help"><i class="fa-regular fa-circle-question"></i> Ajuda e Suporte <i class="fa-solid fa-chevron-right" style="margin-left:auto; color:var(--muted)"></i></button>
         </div>
       </section>
 
       <!-- BOTTOM NAVBAR -->
       <nav class="navbar" id="navbar">
-        <button class="nav-item active" data-page="pageHome">
-          <i class="fa-solid fa-house"></i><span>Início</span>
-        </button>
-        <button class="nav-item" data-page="pageTrending">
-          <i class="fa-solid fa-fire"></i><span>Em alta</span>
-        </button>
-        <button class="fab" id="startLiveButton" aria-label="Criar transmissão">
-          <i class="fa-solid fa-video"></i>
-        </button>
-        <button class="nav-item" data-page="pageChats">
-          <i class="fa-solid fa-comment-dots"></i><span>Chats</span>
-        </button>
-        <button class="nav-item" data-page="pageProfile">
-          <i class="fa-solid fa-user"></i><span>Perfil</span>
-        </button>
+        <button class="nav-item active" data-page="pageHome"><i class="fa-solid fa-house"></i> Início</button>
+        <button class="nav-item" data-page="pageTrending"><i class="fa-solid fa-fire"></i> Em Alta</button>
+        <button class="fab" id="startLiveButton" aria-label="Iniciar Live"><i class="fa-solid fa-video"></i></button>
+        <button class="nav-item" data-page="pageChats"><i class="fa-solid fa-comment-dots"></i> Chats</button>
+        <button class="nav-item" data-page="pageProfile"><i class="fa-solid fa-user"></i> Perfil</button>
       </nav>
+
     </div>
   </div>
 
-  <!-- ================= EDIT PROFILE MODAL ================= -->
-  <div class="modal" id="editProfileModal" inert>
-    <div class="modal-card">
-      <div class="modal-header">
-        <h2>Editar perfil</h2>
-        <button class="icon-btn" id="closeEditProfileModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <form id="editProfileForm">
-        <div class="edit-preview-card">
-          <div class="preview-banner" id="previewBanner" onclick="document.getElementById('editBannerFile').click()">
-            <div class="preview-overlay">
-              <i class="fa-solid fa-camera"></i>
-              <span>Alterar Banner</span>
-            </div>
-          </div>
-
-          <div class="preview-avatar-wrapper">
-            <div class="preview-avatar" id="previewAvatar" onclick="document.getElementById('editAvatarFile').click()">
-              <span id="previewAvatarText"></span>
-              <div class="avatar-overlay">
-                <i class="fa-solid fa-camera"></i>
-              </div>
-            </div>
-          </div>
-
-          <input type="file" id="editAvatarFile" accept="image/*" style="display:none;">
-          <input type="file" id="editBannerFile" accept="image/*" style="display:none;">
-        </div>
-
-        <div class="form-group" style="margin-top: 35px;">
-          <label for="editDisplayNameInput">Nome de exibição</label>
-          <input type="text" id="editDisplayNameInput" placeholder="Seu nome">
-        </div>
-
-        <div class="form-group">
-          <label for="editBioInput">Bio / Apresentação</label>
-          <textarea id="editBioInput" placeholder="Fale sobre você..."></textarea>
-        </div>
-
-        <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 15px;">
-          <button type="button" class="btn secondary" id="cancelEditProfile" style="flex:1;">Cancelar</button>
-          <button type="submit" class="btn primary" id="saveProfileBtn" style="flex:1;">Salvar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ================= CREATE POST MODAL ================= -->
+  <!-- ================= MODALS & OVERLAYS ================= -->
+  
+  <!-- CREATE POST MODAL -->
   <div class="modal" id="createPostModal" inert>
     <div class="modal-card">
       <div class="modal-header">
-        <h2>Criar Publicação</h2>
-        <button class="icon-btn" id="closeCreatePostModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+        <h2>Nova Publicação</h2>
+        <button class="icon-btn ghost" id="closeCreatePostModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
       <form id="createPostForm">
-        <div class="post-preview-area" id="postImagePreviewArea" onclick="document.getElementById('postImageFile').click()">
-          <i class="fa-solid fa-cloud-arrow-up" id="postUploadIcon"></i>
-          <span id="postUploadText">Clique para selecionar uma foto</span>
-          <img id="postImagePreview" class="hidden" alt="Pré-visualização">
-        </div>
-        <input type="file" id="postImageFile" accept="image/*" style="display:none;" required>
-
         <div class="form-group">
-          <label for="postCaptionInput">Legenda da foto</label>
-          <textarea id="postCaptionInput" placeholder="Escreva algo sobre esta foto..." required></textarea>
+          <label for="postCaptionInput">Legenda</label>
+          <textarea id="postCaptionInput" placeholder="Escreva algo sobre a foto..." required></textarea>
         </div>
-
+        
+        <label class="post-preview-area" for="postImageFile">
+          <i class="fa-regular fa-image" id="postUploadIcon"></i>
+          <span id="postUploadText">Toque para escolher uma foto</span>
+          <img id="postImagePreview" class="hidden" alt="Preview da publicação">
+        </label>
+        <input type="file" id="postImageFile" accept="image/*" class="hidden">
+        
         <div class="modal-actions">
-          <button type="button" class="btn secondary" id="cancelCreatePost">Cancelar</button>
-          <button type="submit" class="btn primary" id="btnPublishPost">Publicar <i class="fa-solid fa-paper-plane"></i></button>
+          <button class="btn secondary" type="button" id="cancelCreatePost">Cancelar</button>
+          <button class="btn primary" type="submit" id="btnPublishPost">Publicar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ================= LIVE SETUP MODAL ================= -->
+  <!-- EDIT PROFILE MODAL -->
+  <div class="modal" id="editProfileModal" inert>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Editar Perfil</h2>
+        <button class="icon-btn ghost" id="closeEditProfileModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="editProfileForm">
+        <div class="edit-preview-card">
+          <label class="preview-banner" id="previewBanner" for="editBannerFile">
+            <div class="preview-overlay"><i class="fa-solid fa-camera"></i> Alterar Capa</div>
+          </label>
+          <input type="file" id="editBannerFile" accept="image/*" class="hidden">
+          
+          <div class="preview-avatar-wrapper">
+            <label class="preview-avatar" id="previewAvatar" for="editAvatarFile">
+              <span id="previewAvatarText">U</span>
+              <div class="avatar-overlay"><i class="fa-solid fa-camera"></i></div>
+            </label>
+            <input type="file" id="editAvatarFile" accept="image/*" class="hidden">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <label for="editDisplayNameInput">Nome de exibição</label>
+          <input id="editDisplayNameInput" type="text" maxlength="30" required>
+        </div>
+        <div class="form-group">
+          <label for="editBioInput">Bio</label>
+          <textarea id="editBioInput" maxlength="150" placeholder="Fale um pouco sobre você..."></textarea>
+        </div>
+        
+        <div class="modal-actions">
+          <button class="btn secondary" type="button" id="cancelEditProfile">Cancelar</button>
+          <button class="btn primary" type="submit" id="saveProfileBtn">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- LIVE SETUP MODAL -->
   <div class="modal" id="liveSetupModal" inert>
     <div class="modal-card">
       <div class="modal-header">
-        <h2>Nova transmissão</h2>
-        <button class="icon-btn" id="closeLiveModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+        <h2>Iniciar Transmissão</h2>
+        <button class="icon-btn ghost" id="closeLiveModal" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
       <form id="liveSetupForm">
         <label>
           Título da Live
-          <input id="liveTitle" maxlength="80" value="Minha transmissão ao vivo" required>
+          <input id="liveTitle" type="text" placeholder="Sobre o que vamos falar?" required>
         </label>
-
         <label>
           Categoria
-          <select id="liveCategory">
-            <option value="chat">Bate-papo</option>
-            <option value="gaming">Gaming</option>
-            <option value="music">Música</option>
-            <option value="creative">Criatividade</option>
+          <select id="liveCategory" required>
+            <option value="bate-papo">Bate-papo</option>
+            <option value="games">Games</option>
+            <option value="musica">Música</option>
+            <option value="arte">Arte e Criatividade</option>
           </select>
         </label>
-
+        <label>Privacidade</label>
         <div class="choice-grid">
-          <button type="button" class="choice active" data-visibility="public">
-            <i class="fa-solid fa-globe"></i>
-            <strong>Pública</strong>
-            <small>Qualquer pessoa pode assistir.</small>
-          </button>
-          <button type="button" class="choice" data-visibility="private">
-            <i class="fa-solid fa-lock"></i>
-            <strong>Privada</strong>
-            <small>Acesso controlado pelo criador.</small>
-          </button>
+          <div class="choice active" data-visibility="public">
+            <i class="fa-solid fa-earth-americas"></i>
+            <strong>Público</strong>
+            <small>Qualquer um pode ver</small>
+          </div>
+          <div class="choice" data-visibility="followers">
+            <i class="fa-solid fa-user-group"></i>
+            <strong>Seguidores</strong>
+            <small>Apenas seguidores</small>
+          </div>
         </div>
-
-        <label class="check-row">
-          <input id="enableChat" type="checkbox" checked>
-          <span>Permitir mensagens no chat</span>
-        </label>
-
         <div class="modal-actions">
-          <button type="button" class="btn secondary" id="cancelLive">Cancelar</button>
-          <button type="submit" class="btn primary">Iniciar Live <i class="fa-solid fa-tower-broadcast"></i></button>
+          <button class="btn secondary" type="button" id="cancelLive">Cancelar</button>
+          <button class="btn primary" type="submit"><i class="fa-solid fa-tower-broadcast"></i> Iniciar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ================= STORY VIEWER ================= -->
+  <!-- LIVE ROOM -->
+  <div class="page live-room" id="pageLiveRoom">
+    <div class="live-stage">
+      <div class="live-preview">
+        <video id="liveVideo" autoplay playsinline muted class="hidden"></video>
+        <div class="camera-placeholder" id="liveCameraPlaceholder">
+          <i class="fa-solid fa-video"></i>
+          <p>Conectando à câmera...</p>
+        </div>
+      </div>
+      
+      <button class="floating-back" id="btnLeaveLive"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div class="live-top-info">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="live-indicator">LIVE</span>
+          <span id="liveViewerCount" style="color:#fff; font-size:.8rem; font-weight:700;"><i class="fa-solid fa-eye"></i> 0</span>
+        </div>
+        <span class="host-pill" id="liveHostButton">Host</span>
+      </div>
+
+      <div class="live-overlay-container">
+        <div class="live-info-panel">
+          <h2 id="liveRoomTitle">Título da Live</h2>
+          <p><span class="chip compact" id="liveRoomCategory">BATE-PAPO</span></p>
+        </div>
+        <div class="live-chat" id="liveChat"></div>
+        <form class="message-form live-message-form" id="liveMessageForm">
+          <input id="liveMessageInput" placeholder="Diga algo na live..." autocomplete="off" required>
+          <button class="send-btn" type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- STORY VIEWER -->
   <div class="story-viewer hidden" id="storyViewer">
-    <button class="story-close" id="closeStoryViewer" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
     <div class="story-progress"><span id="storyProgressBar"></span></div>
-    <div class="story-author" id="storyAuthor"></div>
-    <img id="storyImage" alt="Story">
-    <button class="story-next" id="storyNext" aria-label="Próximo"><i class="fa-solid fa-chevron-right"></i></button>
+    <div class="story-author" id="storyAuthor">@usuario</div>
+    <button class="story-close" id="closeStoryViewer"><i class="fa-solid fa-xmark"></i></button>
+    <img id="storyImage" src="" alt="Story">
+    <button class="story-next" id="storyNext"><i class="fa-solid fa-chevron-right"></i></button>
   </div>
 
   <script src="script.js"></script>
