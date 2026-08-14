@@ -334,16 +334,15 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); box-sh
 .post-comments-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-  max-height: 150px;
+  gap: 6px;
+  margin-bottom: 8px;
+  max-height: 120px;
   overflow-y: auto;
 }
 
 .post-comment-item {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #ccc;
-  line-height: 1.3;
 }
 
 .post-comment-item strong {
@@ -360,7 +359,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); box-sh
   font-size: 0.8rem;
   padding: 6px 10px;
   border-radius: 8px;
-  flex: 1;
 }
 
 .section-heading { display: flex; align-items: flex-end; justify-content: space-between; padding: 16px 20px 10px; }
@@ -586,6 +584,193 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); box-sh
 }
 .stats strong { display: block; font-size: 1.1rem; }
 .stats span { color: var(--muted); font-size: .72rem; }
+
+/* CARTEIRA / WALLET & PIX */
+.wallet-card {
+  margin: 0 20px 20px;
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(45, 27, 0, 0.6), rgba(26, 26, 36, 0.8));
+  border: 1px solid rgba(255, 184, 0, 0.4);
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.wallet-card .balance {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.wallet-card .balance i {
+  font-size: 1.8rem;
+  color: var(--gold);
+}
+.wallet-card .balance span {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--gold);
+}
+.wallet-card .balance small {
+  display: block;
+  font-size: 0.75rem;
+  color: #ccc;
+  margin-top: 2px;
+}
+
+/* TABELA PIX E NOTIFICAÇÕES DE COMPRA */
+.pix-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin: 12px 0;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.pix-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.pix-table th, .pix-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pix-table th {
+  background: rgba(0,0,0,0.3);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.pix-table tr:last-child td {
+  border-bottom: none;
+}
+
+.pix-table tr.selected {
+  background: rgba(255, 42, 95, 0.15);
+}
+
+.pix-info-box {
+  background: rgba(255, 184, 0, 0.08);
+  border: 1px dashed var(--gold);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  margin: 12px 0;
+}
+
+.pix-info-box strong {
+  color: var(--gold);
+  font-size: 0.95rem;
+  user-select: all;
+  display: block;
+  margin-top: 4px;
+}
+
+.admin-notification-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  margin: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-notification-card.pending-pix {
+  border-color: var(--gold);
+  background: rgba(255, 184, 0, 0.05);
+}
+
+.admin-notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.admin-notification-body {
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.admin-notification-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.badge-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.badge-status.pending { background: rgba(255, 184, 0, 0.2); color: var(--gold); }
+.badge-status.approved { background: rgba(0, 208, 132, 0.2); color: var(--success); }
+.badge-status.rejected { background: rgba(255, 77, 94, 0.2); color: var(--danger); }
+
+.gifts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+}
+.gift-item {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 15px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+.gift-item:hover, .gift-item.active {
+  border-color: var(--primary);
+  background: rgba(255, 42, 95, 0.1);
+}
+.gift-item i {
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+  display: block;
+  font-style: normal;
+}
+.gift-item span {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--gold);
+}
+.live-animation-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 200;
+  overflow: hidden;
+}
+.gift-anim {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 4rem;
+  animation: flyUp 3s ease-in-out forwards;
+  text-shadow: 0 0 20px rgba(255,255,255,0.5);
+  text-align: center;
+}
+@keyframes flyUp {
+  0% { bottom: 10%; opacity: 1; transform: translateX(-50%) scale(0.5); }
+  50% { transform: translateX(-50%) scale(1.2); }
+  100% { bottom: 90%; opacity: 0; transform: translateX(-50%) scale(1); }
+}
+
 .profile-tabs { display: flex; border-bottom: 1px solid var(--border); }
 .profile-tabs button {
   flex: 1; background: none; border: 0; color: var(--muted); padding: 12px; font-weight: 700; cursor: pointer;
@@ -685,6 +870,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); box-sh
   background: var(--surface-2);
   overflow: hidden;
   position: relative;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.post-preview-area:hover {
+  border-color: var(--primary);
+  background-color: rgba(255, 42, 95, 0.05);
 }
 
 .post-preview-area i {
@@ -696,6 +887,42 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); box-sh
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* ÁREA DE TEXTO DA LEGENDA DO POST */
+.post-caption-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.post-caption-box label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.post-caption-box textarea {
+  width: 100%;
+  min-height: 90px;
+  background-color: #121217;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-caption-box textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(255, 42, 95, 0.15);
 }
 
 .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
