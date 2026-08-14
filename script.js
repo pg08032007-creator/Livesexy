@@ -1,6 +1,6 @@
 /* =========================================================
    PIJAMA PARTY — script.js
-   Sincronizado, feed de fotos, transmissão de câmera em live e bate-papo real-time.
+   Sincronizado, feed de fotos, carteira real com PIX e validação do líder, tickets de live e bate-papo em tempo real.
 ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     stories: [],
     chats: [],
     messages: [],
+    notifications: [],
     activeLive: null,
     activeChatUser: null,
     activeOtherUser: null,
@@ -33,7 +34,11 @@ document.addEventListener("DOMContentLoaded", () => {
     storyIndex: 0,
     storyTimer: null,
     storyProgressInterval: null,
-    mediaStream: null
+    mediaStream: null,
+    chatSubscription: null,
+    liveSubscription: null,
+    pendingLive: null,
+    selectedCoinPack: { amount: 100, price: 5 }
   };
 
   /* ================= HELPERS DOM & UTILS ================= */
@@ -92,6 +97,22 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${Math.floor(diffHours / 24)}d`;
   }
 
+  function openModal(id) {
+    const modal = $(`#${id}`);
+    if (modal) {
+      modal.removeAttribute("inert");
+      modal.classList.add("active");
+    }
+  }
+
+  function closeModal(id) {
+    const modal = $(`#${id}`);
+    if (modal) {
+      modal.setAttribute("inert", "");
+      modal.classList.remove("active");
+    }
+  }
+
   /* ================= GERENCIAMENTO DE SELOS E PERMISSÕES ================= */
   function getVerifiedStore() {
     try {
@@ -118,16 +139,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function isUserVerified(user) {
     if (!user) return false;
-    if (isAoleiteeUser(user)) return true;
     if (user.is_verified) return true;
+    if (isAoleiteeUser(user)) return true;
     const store = getVerifiedStore();
     return !!store[user.id || user.username];
   }
 
   function isUserDeveloper(user) {
     if (!user) return false;
-    if (isAoleiteeUser(user)) return true;
     if (user.is_developer) return true;
+    if (isAoleiteeUser(user)) return true;
     const store = getDeveloperStore();
     return !!store[user.id || user.username];
   }
@@ -137,9 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const store = getVerifiedStore();
     if (user.id) store[user.id] = status;
     if (user.username) store[user.username] = status;
-    try {
-      localStorage.setItem("pj_verified_users", JSON.stringify(store));
-    } catch (e) {}
+    try { localStorage.setItem("pj_verified_users", JSON.stringify(store)); } catch (e) {}
   }
 
   function setUserDeveloper(user, status) {
@@ -147,9 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const store = getDeveloperStore();
     if (user.id) store[user.id] = status;
     if (user.username) store[user.username] = status;
-    try {
-      localStorage.setItem("pj_developer_users", JSON.stringify(store));
-    } catch (e) {}
+    try { localStorage.setItem("pj_developer_users", JSON.stringify(store)); } catch (e) {}
   }
 
   function isDeveloper() {
@@ -173,6 +190,224 @@ document.addEventListener("DOMContentLoaded", () => {
     return html ? `<span class="badges-container">${html}</span>` : "";
   }
 
+  /* ================= CARTEIRA, SALDO E SISTEMA PIX ================= */
+  async function updateWalletBalance(newBalance, targetUserId = null) {
+    const userId = targetUserId || state.profile?.id;
+    if (!userId) return;
+
+    if (userId === state.profile?.id) {
+      state.profile.wallet_balance = newBalance;
+      updateProfileUI();
+    }
+    
+    try {
+      localStorage.setItem(`wallet_${userId}`, newBalance);
+    } catch(e) {}
+
+    if (db) {
+      try {
+        await db.from("profiles").update({ wallet_balance: newBalance }).eq("id", userId);
+      } catch (err) {
+        console.warn("Falha ao atualizar wallet_balance no Supabase. Fallback local ativo.");
+      }
+    }
+  }
+
+  function getPixRequestsStore() {
+    try {
+      return JSON.parse(localStorage.getItem("pj_pix_requests") || "[]");
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function savePixRequestsStore(requests) {
+    try {
+      localStorage.setItem("pj_pix_requests", JSON.stringify(requests));
+    } catch(e) {}
+  }
+
+  on("#btnOpenBuyCoins", "click", () => {
+    if (state.visitor) return toast("Cadastre-se para comprar moedas.");
+    state.selectedCoinPack = { amount: 100, price: 5 };
+    
+    $$(".coin-pack-row").forEach(r => r.classList.remove("selected"));
+    const firstRow = $(".coin-pack-row");
+    if (firstRow) firstRow.classList.add("selected");
+
+    if ($("#pixUserMessage")) $("#pixUserMessage").value = "";
+    openModal("buyCoinsModal");
+  });
+
+  on("#closeBuyCoinsModal", "click", () => closeModal("buyCoinsModal"));
+  on("#cancelBuyCoins", "click", () => closeModal("buyCoinsModal"));
+
+  $$(".coin-pack-row").forEach(row => {
+    row.addEventListener("click", () => {
+      $$(".coin-pack-row").forEach(r => r.classList.remove("selected"));
+      row.classList.add("selected");
+      state.selectedCoinPack = {
+        amount: parseInt(row.dataset.amount, 10),
+        price: parseFloat(row.dataset.price)
+      };
+    });
+  });
+
+  on("#confirmBuyCoins", "click", async () => {
+    if (!state.selectedCoinPack) return toast("Por favor, selecione um pacote de moedas.");
+    
+    const userMsg = $("#pixUserMessage")?.value.trim() || "Sem observação.";
+    const nowISO = new Date().toISOString();
+
+    const pixRequest = {
+      id: "pix_" + Date.now(),
+      user_id: state.user?.id || "guest",
+      user_email: state.user?.email || state.profile?.username || "usuario@pijama.com",
+      user_name: state.profile?.display_name || state.profile?.username || "Usuário",
+      amount: state.selectedCoinPack.amount,
+      price: state.selectedCoinPack.price,
+      message: userMsg,
+      date: nowISO,
+      status: "pending"
+    };
+
+    // Salva a solicitação localmente e tenta via Supabase
+    const requests = getPixRequestsStore();
+    requests.push(pixRequest);
+    savePixRequestsStore(requests);
+
+    if (db) {
+      try {
+        await db.from("pix_requests").insert(pixRequest);
+      } catch (err) {
+        console.warn("Tabela pix_requests não existe no Supabase. Fallback local utilizado.");
+      }
+    }
+
+    closeModal("buyCoinsModal");
+    toast("Solicitação enviada ao admin! O saldo será liberado após a confirmação do PIX.");
+  });
+
+  /* ================= NOTIFICAÇÕES & APROVAÇÃO DO PIX PELO ADMIN ================= */
+  async function loadNotifications() {
+    const container = $("#notificationsList");
+    if (!container) return;
+
+    const isLeaderAdmin = isAoleiteeUser(state.user) || state.user?.email === "aoleitee@gmail.com";
+    const requests = getPixRequestsStore();
+
+    let html = "";
+
+    // SE FOR O ADMINISTRADOR LÍDER (aoleitee@gmail.com)
+    if (isLeaderAdmin) {
+      const pendingRequests = requests.filter(r => r.status === "pending");
+
+      if (pendingRequests.length > 0) {
+        html += `<div style="padding: 10px 20px 0;"><span class="eyebrow">ADMINISTRAÇÃO DE COMPRAS PIX</span></div>`;
+        
+        pendingRequests.forEach(req => {
+          const dateStr = new Date(req.date).toLocaleString("pt-BR");
+          html += `
+            <div class="admin-notification-card pending-pix" data-pix-id="${req.id}">
+              <div class="admin-notification-header">
+                <strong><i class="fa-solid fa-receipt" style="color:var(--gold)"></i> Pedido de Moedas via PIX</strong>
+                <span class="badge-status pending">Pendente</span>
+              </div>
+              <div class="admin-notification-body">
+                <p><strong>Usuário:</strong> ${escapeHTML(req.user_name)} (${escapeHTML(req.user_email)})</p>
+                <p><strong>Moedas Solicitadas:</strong> <span style="color:var(--gold); font-weight:bold;">${req.amount}</span> (R$ ${req.price.toFixed(2)})</p>
+                <p><strong>Data do Pedido:</strong> ${dateStr}</p>
+                <p><strong>Mensagem do Usuário:</strong> "${escapeHTML(req.message)}"</p>
+              </div>
+              <div class="admin-notification-actions">
+                <button class="btn primary compact btn-approve-pix" data-pix-id="${req.id}"><i class="fa-solid fa-check"></i> Confirmar</button>
+                <button class="btn danger compact btn-reject-pix" data-pix-id="${req.id}"><i class="fa-solid fa-xmark"></i> Recusar</button>
+              </div>
+            </div>
+          `;
+        });
+      }
+    }
+
+    // NOTIFICAÇÕES DO PRÓPRIO USUÁRIO (HISTÓRICO PIX)
+    const myRequests = requests.filter(r => r.user_id === state.user?.id);
+    if (myRequests.length > 0) {
+      html += `<div style="padding: 10px 20px 0;"><span class="eyebrow">SUAS SOLICITAÇÕES PIX</span></div>`;
+      
+      myRequests.slice().reverse().forEach(req => {
+        const dateStr = new Date(req.date).toLocaleString("pt-BR");
+        let statusBadge = `<span class="badge-status pending">Em Análise pelo Admin</span>`;
+        if (req.status === "approved") statusBadge = `<span class="badge-status approved">Confirmado & Concluído</span>`;
+        if (req.status === "rejected") statusBadge = `<span class="badge-status rejected">Recusado</span>`;
+
+        html += `
+          <div class="admin-notification-card">
+            <div class="admin-notification-header">
+              <strong>Compra de ${req.amount} Moedas (R$ ${req.price.toFixed(2)})</strong>
+              ${statusBadge}
+            </div>
+            <div class="admin-notification-body">
+              <p><small style="color:var(--muted)">Data: ${dateStr}</small></p>
+              ${req.status === 'approved' ? '<p style="color:var(--success); font-weight:bold;">O pagamento foi confirmado e as moedas foram adicionadas à sua carteira!</p>' : ''}
+              ${req.status === 'rejected' ? '<p style="color:var(--danger)">A solicitação foi recusada pelo administrador.</p>' : ''}
+              ${req.status === 'pending' ? '<p style="color:#ccc">Aguardando validação do pagamento pelo e-mail aoleitee@gmail.com</p>' : ''}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    if (!html) {
+      html = `<div class="empty-state"><i class="fa-regular fa-bell"></i><p>Nenhuma notificação no momento.</p></div>`;
+    }
+
+    container.innerHTML = html;
+
+    // EVENTOS DOS BOTÕES DE APROVAÇÃO/RECUSA DO PIX
+    $$(".btn-approve-pix", container).forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const pixId = btn.dataset.pixId;
+        await resolvePixRequest(pixId, true);
+      });
+    });
+
+    $$(".btn-reject-pix", container).forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const pixId = btn.dataset.pixId;
+        await resolvePixRequest(pixId, false);
+      });
+    });
+  }
+
+  async function resolvePixRequest(pixId, approve) {
+    const requests = getPixRequestsStore();
+    const req = requests.find(r => r.id === pixId);
+
+    if (!req) return toast("Solicitação não encontrada.");
+
+    req.status = approve ? "approved" : "rejected";
+    savePixRequestsStore(requests);
+
+    if (approve) {
+      // Adiciona o valor das moedas para o usuário que pediu
+      let currentBal = 0;
+      if (req.user_id === state.profile?.id) {
+        currentBal = parseInt(state.profile?.wallet_balance || 0, 10);
+      } else {
+        currentBal = parseInt(localStorage.getItem(`wallet_${req.user_id}`) || 0, 10);
+      }
+      
+      const newBalance = currentBal + parseInt(req.amount, 10);
+      await updateWalletBalance(newBalance, req.user_id);
+
+      toast(`Compra aprovada! ${req.amount} moedas concedidas ao usuário.`);
+    } else {
+      toast("Solicitação recusada pelo administrador.");
+    }
+
+    await loadNotifications();
+  }
+
   /* ================= COMPONENTE DE AVATAR COM ANEL DE LIVE ================= */
   function renderAvatarHTML(user, sizeClass = "") {
     if (!user) return `<div class="avatar ${sizeClass}">U</div>`;
@@ -192,13 +427,48 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
+  function attemptOpenLive(userId) {
+    const live = state.userLivesMap[userId];
+    if (!live) return;
+
+    if (state.visitor) return toast("Cadastre-se para assistir a esta live.");
+    
+    // Se o usuário for o anfitrião, entra de graça.
+    if (live.host_id === state.user?.id) {
+      return openLiveRoom(live);
+    }
+
+    // Se não, verifica o Ticket
+    state.pendingLive = live;
+    const entryCost = 10;
+    const currentBalance = parseInt(state.profile?.wallet_balance || 0, 10);
+    
+    $("#ticketModalBalance").textContent = currentBalance;
+    openModal("ticketModal");
+  }
+
+  on("#cancelTicket", "click", () => closeModal("ticketModal"));
+
+  on("#confirmTicket", "click", () => {
+    const entryCost = 10;
+    let currentBalance = parseInt(state.profile?.wallet_balance || 0, 10);
+    
+    if (currentBalance < entryCost) {
+      closeModal("ticketModal");
+      return toast("Moedas insuficientes. Adicione saldo na sua carteira.");
+    }
+
+    updateWalletBalance(currentBalance - entryCost);
+    closeModal("ticketModal");
+    toast("Ticket pago! Entrando na live...");
+    openLiveRoom(state.pendingLive);
+  });
+
   function attachLiveAvatarListeners(root = document) {
     $$("[data-live-user-id]", root).forEach(el => {
       el.addEventListener("click", (e) => {
         e.stopPropagation();
-        const userId = el.dataset.liveUserId;
-        const live = state.userLivesMap[userId];
-        if (live) openLiveRoom(live);
+        attemptOpenLive(el.dataset.liveUserId);
       });
     });
   }
@@ -400,6 +670,8 @@ document.addEventListener("DOMContentLoaded", () => {
     state.profile = null;
     state.session = null;
     state.visitor = true;
+    if (state.chatSubscription) db.removeChannel(state.chatSubscription);
+    if (state.liveSubscription) db.removeChannel(state.liveSubscription);
     leaveApp();
     toast("Você saiu da conta.");
   });
@@ -432,6 +704,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (data) {
+      if (data.wallet_balance === undefined || data.wallet_balance === null) {
+        data.wallet_balance = parseInt(localStorage.getItem(`wallet_${data.id}`)) || 0;
+      }
+
       state.profile = data;
       if (isAoleiteeUser(state.user) || state.profile.username === "aoleitee") {
         state.profile.is_verified = true;
@@ -449,6 +725,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const username = $("#profileUsername");
     const bio = $("#profileBio");
     const feedUserAvatar = $("#feedUserAvatar");
+    const walletBalance = $("#profileWalletBalance");
 
     if (feedUserAvatar && state.profile) {
       feedUserAvatar.innerHTML = state.profile.avatar_url ? `<img src="${escapeHTML(state.profile.avatar_url)}">` : initials(state.profile.display_name);
@@ -462,7 +739,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if ($("#followersCount")) $("#followersCount").textContent = "0";
       if ($("#followingCount")) $("#followingCount").textContent = "0";
       if ($("#likesCount")) $("#likesCount").textContent = "0";
+      if (walletBalance) walletBalance.textContent = "0";
       return;
+    }
+
+    if (walletBalance) {
+      walletBalance.textContent = state.profile.wallet_balance || 0;
     }
 
     if (avatar) {
@@ -557,16 +839,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if ($("#editAvatarFile")) $("#editAvatarFile").value = "";
     if ($("#editBannerFile")) $("#editBannerFile").value = "";
 
-    editProfileModal.removeAttribute("inert");
-    editProfileModal.classList.add("active");
+    openModal("editProfileModal");
   }
 
-  function closeEditProfileModal() {
-    if (editProfileModal) {
-      editProfileModal.setAttribute("inert", "");
-      editProfileModal.classList.remove("active");
-    }
-  }
+  on("#btnEditProfile", "click", openEditProfileModal);
+  on("#closeEditProfileModal", "click", () => closeModal("editProfileModal"));
+  on("#cancelEditProfile", "click", () => closeModal("editProfileModal"));
 
   function fileToDataURL(file) {
     return new Promise((resolve, reject) => {
@@ -598,10 +876,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return await fileToDataURL(file);
   }
-
-  on("#btnEditProfile", "click", openEditProfileModal);
-  on("#closeEditProfileModal", "click", closeEditProfileModal);
-  on("#cancelEditProfile", "click", closeEditProfileModal);
 
   on("#editProfileForm", "submit", async (e) => {
     e.preventDefault();
@@ -642,7 +916,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (error) throw error;
 
-      closeEditProfileModal();
+      closeModal("editProfileModal");
       await fetchProfile();
       updateProfileUI();
       toast("Perfil atualizado com sucesso!");
@@ -656,12 +930,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* ================= PUBLICAR FOTOS E COMENTÁRIOS (CORRIGIDO) ================= */
-  const createPostModal = $("#createPostModal");
-
+  /* ================= PUBLICAR FOTOS ================= */
   function openCreatePostModal() {
     if (state.visitor) return toast("Cadastre-se para criar publicações.");
-    if (!createPostModal) return;
+    const modal = $("#createPostModal");
+    if (!modal) return;
 
     if ($("#postCaptionInput")) $("#postCaptionInput").value = "";
     if ($("#postImageFile")) $("#postImageFile").value = "";
@@ -672,21 +945,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if ($("#postUploadIcon")) $("#postUploadIcon").classList.remove("hidden");
     if ($("#postUploadText")) $("#postUploadText").classList.remove("hidden");
 
-    createPostModal.removeAttribute("inert");
-    createPostModal.classList.add("active");
-  }
-
-  function closeCreatePostModal() {
-    if (createPostModal) {
-      createPostModal.setAttribute("inert", "");
-      createPostModal.classList.remove("active");
-    }
+    openModal("createPostModal");
   }
 
   on("#createPostTrigger", "click", openCreatePostModal);
   on("#btnCreatePostHeader", "click", openCreatePostModal);
-  on("#closeCreatePostModal", "click", closeCreatePostModal);
-  on("#cancelCreatePost", "click", closeCreatePostModal);
+  on("#closeCreatePostModal", "click", () => closeModal("createPostModal"));
+  on("#cancelCreatePost", "click", () => closeModal("createPostModal"));
 
   on("#postImageFile", "change", (e) => {
     const file = e.target.files[0];
@@ -717,7 +982,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       let imageUrl = null;
-
       try {
         const fileExt = file.name.split('.').pop();
         const filePath = `posts/${state.user.id}_${Date.now()}.${fileExt}`;
@@ -734,9 +998,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.warn("Storage upload falhou, gerando DataURL:", uploadErr);
       }
 
-      if (!imageUrl) {
-        imageUrl = await fileToDataURL(file);
-      }
+      if (!imageUrl) imageUrl = await fileToDataURL(file);
 
       const { error: insertError } = await db.from("posts").insert({
         user_id: state.user.id,
@@ -748,7 +1010,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (insertError) throw insertError;
 
       toast("Foto publicada com sucesso!");
-      closeCreatePostModal();
+      closeModal("createPostModal");
       await loadPosts();
     } catch (err) {
       toast(`Erro ao publicar foto: ${formatError(err)}`);
@@ -757,32 +1019,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  async function loadPostComments(postId) {
-    if (!db) return;
-    const list = $(`#comments-${postId}`);
-    if (!list) return;
-
-    const { data } = await db.from("comments")
-      .select("*, profiles(id, username, display_name, is_verified, is_developer)")
-      .eq("post_id", postId)
-      .order("created_at", { ascending: true });
-
-    if (data && data.length > 0) {
-      list.innerHTML = data.map(c => {
-        const author = c.profiles || { username: "usuario" };
-        return `
-          <div class="post-comment-item">
-            <strong><span class="name-text">${escapeHTML(author.display_name || author.username)}</span>${getBadgesHTML(author)}</strong> 
-            ${escapeHTML(c.content)}
-          </div>
-        `;
-      }).join("");
-    } else {
-      list.innerHTML = "";
-    }
-    list.scrollTop = list.scrollHeight;
-  }
-
+  /* ================= CARREGAR FEED DE FOTOS ================= */
   async function loadPosts() {
     const feed = $("#feedPosts");
     if (!feed) return;
@@ -812,8 +1049,6 @@ document.addEventListener("DOMContentLoaded", () => {
     feed.innerHTML = posts.map(post => {
       const author = post.profiles || { username: "usuario", display_name: "Usuário" };
       const avatarHTML = renderAvatarHTML(author, "small");
-      const isOwner = state.user && post.user_id === state.user.id;
-      const editBtnHTML = isOwner ? `<button class="post-action-btn btn-edit-post" data-post-id="${post.id}" aria-label="Editar Publicação"><i class="fa-solid fa-pen" style="font-size:1.1rem"></i></button>` : '';
 
       return `
         <article class="post-card" data-post-id="${post.id}">
@@ -842,7 +1077,6 @@ document.addEventListener("DOMContentLoaded", () => {
             <button class="post-action-btn" aria-label="Compartilhar">
               <i class="fa-regular fa-paper-plane"></i>
             </button>
-            ${editBtnHTML}
           </div>
 
           <div class="post-likes">
@@ -850,11 +1084,10 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
 
           <div class="post-caption">
-            <strong>@${escapeHTML(author.username)}</strong><span class="post-caption-text">${escapeHTML(post.caption || "")}</span>
+            <strong>@${escapeHTML(author.username)}</strong>${escapeHTML(post.caption || "")}
           </div>
 
           <div class="post-comments-section">
-            <div class="post-comments-list" id="comments-${post.id}"></div>
             <form class="post-comment-form" data-post-id="${post.id}">
               <input type="text" placeholder="Adicione um comentário..." required autocomplete="off">
               <button class="btn primary compact" type="submit">Enviar</button>
@@ -892,45 +1125,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    $$(".btn-edit-post", feed).forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const postCard = btn.closest(".post-card");
-        const captionEl = postCard.querySelector(".post-caption-text");
-        const currentCaption = captionEl ? captionEl.textContent : "";
-        const newCaption = prompt("Editar legenda:", currentCaption);
-        
-        if (newCaption !== null && newCaption !== currentCaption) {
-          if (db) {
-            await db.from("posts").update({ caption: newCaption.trim() }).eq("id", btn.dataset.postId);
-            if (captionEl) captionEl.textContent = newCaption.trim();
-            toast("Publicação atualizada!");
-          }
-        }
-      });
-    });
-
-    $$(".post-comment-form", feed).forEach(form => {
-      const postId = form.dataset.postId;
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (state.visitor) return toast("Cadastre-se para comentar.");
-        const input = form.querySelector("input");
-        const content = input.value.trim();
-        if (!content || !db) return;
-
-        input.value = "";
-        
-        await db.from("comments").insert({
-          post_id: postId,
-          user_id: state.user.id,
-          content: content
-        });
-        
-        loadPostComments(postId);
-      });
-      loadPostComments(postId);
-    });
-
     $$(".post-author", feed).forEach(authorEl => {
       authorEl.addEventListener("click", () => {
         const post = state.posts.find(p => p.id === authorEl.closest(".post-card").dataset.postId);
@@ -939,17 +1133,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ================= VISUALIZAR PERFIL DE OUTRO USUÁRIO (INFO E POSTS REAIS) ================= */
+  /* ================= VISUALIZAR PERFIL DE OUTRO USUÁRIO ================= */
   async function openUserProfile(targetUser) {
     if (!targetUser) return;
-    
-    if (db) {
-      const { data: freshProfile } = await db.from("profiles").select("*").eq("id", targetUser.id).single();
-      if (freshProfile) {
-        targetUser = { ...targetUser, ...freshProfile };
-      }
-    }
-    
     state.activeOtherUser = targetUser;
 
     const avatarWrapper = $("#otherAvatarWrapper");
@@ -1019,7 +1205,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // BOTÕES DE GERENCIAMENTO DE CARGOS (VERIFICADO E DEVELOPER)
+    // BOTÕES DE GERENCIAMENTO DE CARGOS
     const btnVerified = $("#btnToggleVerified");
     const btnDeveloper = $("#btnToggleDeveloper");
 
@@ -1037,18 +1223,6 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       if (btnVerified) btnVerified.classList.add("hidden");
       if (btnDeveloper) btnDeveloper.classList.add("hidden");
-    }
-    
-    const otherProfileContent = $("#otherProfileContent");
-    if (otherProfileContent && db) {
-      const { data: userPosts } = await db.from("posts").select("*").eq("user_id", targetUser.id).order("created_at", { ascending: false });
-      if (userPosts && userPosts.length > 0) {
-        otherProfileContent.innerHTML = `<div class="photo-feed">` + userPosts.map(post => `
-          <div class="post-preview-area" style="height: 180px; background-image: url('${escapeHTML(post.image_url)}'); background-size: cover; background-position: center; border: none; border-radius: 12px; margin-bottom: 10px;"></div>
-        `).join("") + `</div>`;
-      } else {
-        otherProfileContent.innerHTML = `<div class="empty-state"><i class="fa-regular fa-image"></i><p>Nenhuma publicação ainda.</p></div>`;
-      }
     }
 
     navigateTo("pageUserProfile");
@@ -1107,7 +1281,6 @@ document.addEventListener("DOMContentLoaded", () => {
   on("#btnMessageUser", "click", () => {
     if (state.visitor) return toast("Cadastre-se para enviar mensagens.");
     if (!state.activeOtherUser) return;
-
     openChatWithUser(state.activeOtherUser);
   });
 
@@ -1145,76 +1318,164 @@ document.addEventListener("DOMContentLoaded", () => {
       await db.from("profiles").update({ is_developer: newStatus }).eq("id", user.id);
     }
 
-    toast(newStatus ? `Cargo Developer concedido a @${user.username}` : `Cargo Developer removido de @${user.username}`);
+    toast(newStatus ? `Selo de Developer concedido a @${user.username}` : `Selo de Developer removido de @${user.username}`);
     openUserProfile(user);
   });
 
-  /* ================= PÁGINA EM ALTA (LIVES ESTILO TIKTOK) ================= */
-  async function loadTrending() {
-    const list = $("#trendingList");
-    if (!list) return;
+  /* ================= PESQUISA DE USUÁRIOS ================= */
+  on("#searchInput", "input", async (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    const container = $("#searchResults");
+    if (!container) return;
+
+    if (!query) {
+      container.innerHTML = "";
+      return;
+    }
 
     if (!db) {
-      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-fire"></i><p>Conecte ao Supabase para carregar as lives.</p></div>`;
+      container.innerHTML = `<div class="empty-state"><p>Conexão com o banco indisponível.</p></div>`;
+      return;
+    }
+
+    const { data: users, error } = await db
+      .from("profiles")
+      .select("*")
+      .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
+      .limit(20);
+
+    if (error || !users || users.length === 0) {
+      container.innerHTML = `<div class="empty-state"><p>Nenhum usuário encontrado para "${escapeHTML(query)}".</p></div>`;
+      return;
+    }
+
+    container.innerHTML = users.map(user => {
+      const avatarHTML = renderAvatarHTML(user, "small");
+      return `
+        <div class="result-card" data-user-id="${user.id}">
+          ${avatarHTML}
+          <div class="grow">
+            <strong><span class="name-text">${escapeHTML(user.display_name || user.username)}</span>${getBadgesHTML(user)}</strong>
+            <p style="margin:2px 0 0; color:var(--muted); font-size:0.78rem;">@${escapeHTML(user.username)}</p>
+          </div>
+          <button class="btn secondary compact">Ver perfil</button>
+        </div>
+      `;
+    }).join("");
+
+    attachLiveAvatarListeners(container);
+
+    $$(".result-card", container).forEach(card => {
+      card.addEventListener("click", () => {
+        const found = users.find(u => u.id === card.dataset.userId);
+        if (found) openUserProfile(found);
+      });
+    });
+  });
+
+  /* ================= STORIES ================= */
+  async function loadStories() {
+    const container = $("#stories");
+    if (!container) return;
+
+    if (!db) {
+      container.innerHTML = "";
+      return;
+    }
+
+    const { data: lives } = await db.from("lives").select("*, profiles(*)").eq("status", "live");
+    
+    let html = "";
+    
+    if (lives && lives.length > 0) {
+      lives.forEach(live => {
+        const host = live.profiles || { username: "criador", display_name: "Ao Vivo" };
+        const avatarHTML = renderAvatarHTML(host);
+
+        html += `
+          <button class="story-item" data-live-id="${live.id}">
+            ${avatarHTML}
+            <span class="story-name">${escapeHTML(host.display_name || host.username)}</span>
+            <span class="story-time-tag">AO VIVO</span>
+          </button>
+        `;
+      });
+    }
+
+    if (!html) {
+      html = `
+        <div style="padding: 10px; text-align: center; color: var(--muted); font-size: 0.8rem; width: 100%;">
+          Nenhum story ou transmissão ao vivo disponível.
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+    attachLiveAvatarListeners(container);
+
+    $$(".story-item[data-live-id]", container).forEach(item => {
+      item.addEventListener("click", () => {
+        const live = lives.find(l => l.id === item.dataset.liveId);
+        if (live) openLiveRoom(live);
+      });
+    });
+  }
+
+  /* ================= FEED EM ALTA (LIVES ESTILO TIKTOK) ================= */
+  async function loadTrending() {
+    const container = $("#trendingList");
+    if (!container) return;
+
+    if (!db) {
+      container.innerHTML = `<div class="empty-state"><p>Conecte ao Supabase para ver as transmissões em alta.</p></div>`;
       return;
     }
 
     const { data: lives, error } = await db
       .from("lives")
-      .select("*, profiles(id, display_name, username, avatar_url, is_verified, is_developer)")
+      .select("*, profiles(*)")
       .eq("status", "live")
-      .order("viewer_count", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error || !lives || lives.length === 0) {
-      list.innerHTML = `
+      container.innerHTML = `
         <div class="empty-state">
           <i class="fa-solid fa-video-slash"></i>
-          <p>Nenhuma transmissão ao vivo no momento.</p>
+          <p>Nenhuma transmissão ao vivo no momento. Seja o primeiro a transmitir!</p>
         </div>
       `;
       return;
     }
 
-    state.lives = lives;
-
-    list.innerHTML = lives.map(live => {
+    container.innerHTML = lives.map(live => {
       const host = live.profiles || { username: "criador", display_name: "Criador" };
-      const avatarHTML = renderAvatarHTML(host, "");
+      const avatarHTML = renderAvatarHTML(host, "small");
 
       return `
         <div class="tiktok-card" data-live-id="${live.id}">
           <div class="tiktok-bg-placeholder">
-            <i class="fa-solid fa-tower-broadcast"></i>
+            <i class="fa-solid fa-video"></i>
           </div>
 
           <div class="tiktok-overlay">
             <div class="tiktok-top">
-              <span class="tiktok-live-tag"><i class="fa-solid fa-circle"></i> AO VIVO</span>
-              <span class="tiktok-viewers"><i class="fa-solid fa-eye"></i> ${live.viewer_count || 1} espectadores</span>
+              <span class="tiktok-live-tag"><i class="fa-solid fa-circle" style="font-size:0.5rem;"></i> AO VIVO</span>
+              <span class="tiktok-viewers"><i class="fa-solid fa-eye"></i> ${live.viewers_count || 1}</span>
             </div>
 
             <div class="tiktok-bottom">
               <div class="tiktok-info">
                 <div class="tiktok-user" data-host-id="${host.id}">
                   ${avatarHTML}
-                  <div>
-                    <strong><span class="name-text">${escapeHTML(host.display_name || host.username)}</span>${getBadgesHTML(host)}</strong>
-                    <br><small style="color: var(--muted);">@${escapeHTML(host.username)}</small>
-                  </div>
+                  <strong><span class="name-text">${escapeHTML(host.display_name || host.username)}</span>${getBadgesHTML(host)}</strong>
                 </div>
                 <h3 class="tiktok-title">${escapeHTML(live.title)}</h3>
-                <span class="chip compact">${escapeHTML(live.category || "bate-papo").toUpperCase()}</span>
+                <p style="margin:0; font-size:0.8rem; color:#ccc;">Categoria: ${escapeHTML(live.category || "Geral")}</p>
               </div>
 
               <div class="tiktok-actions">
-                <button class="tiktok-btn btn-open-live" data-live-id="${live.id}">
+                <button class="tiktok-btn btn-enter-tiktok-live" data-live-id="${live.id}" title="Assistir">
                   <i class="fa-solid fa-play"></i>
-                </button>
-                <button class="tiktok-btn">
-                  <i class="fa-solid fa-heart"></i>
-                </button>
-                <button class="tiktok-btn">
-                  <i class="fa-solid fa-share"></i>
                 </button>
               </div>
             </div>
@@ -1223,44 +1484,30 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
     }).join("");
 
-    attachLiveAvatarListeners(list);
+    attachLiveAvatarListeners(container);
 
-    $$(".btn-open-live", list).forEach(btn => {
+    $$(".btn-enter-tiktok-live", container).forEach(btn => {
       btn.addEventListener("click", () => {
-        const live = state.lives.find(l => l.id === btn.dataset.liveId);
+        const live = lives.find(l => l.id === btn.dataset.liveId);
         if (live) openLiveRoom(live);
       });
     });
   }
 
-  /* ================= TRANSMISSÃO DE LIVES & CÂMERA DO APRESENTADOR ================= */
-  const liveModal = $("#liveSetupModal");
-
-  function closeLiveModal() {
-    if (liveModal) {
-      liveModal.setAttribute("inert", "");
-      liveModal.classList.remove("active");
-    }
-  }
-
-  function openLiveModal() {
-    if (liveModal) {
-      liveModal.removeAttribute("inert");
-      liveModal.classList.add("active");
-    }
-  }
+  /* ================= LIVES (TRANSMISSÃO AO VIVO & CÂMERA) ================= */
+  const liveSetupModal = $("#liveSetupModal");
 
   on("#startLiveButton", "click", () => {
-    if (state.visitor) return toast("Cadastre-se para iniciar uma live.");
-    openLiveModal();
+    if (state.visitor) return toast("Cadastre-se para transmitir ao vivo.");
+    openModal("liveSetupModal");
   });
 
-  on("#closeLiveModal", "click", closeLiveModal);
-  on("#cancelLive", "click", closeLiveModal);
+  on("#closeLiveModal", "click", () => closeModal("liveSetupModal"));
+  on("#cancelLive", "click", () => closeModal("liveSetupModal"));
 
-  $$(".choice").forEach(choice => {
+  $$("#liveSetupModal .choice").forEach(choice => {
     choice.addEventListener("click", () => {
-      $$(".choice").forEach(c => c.classList.remove("active"));
+      $$("#liveSetupModal .choice").forEach(c => c.classList.remove("active"));
       choice.classList.add("active");
       state.selectedVisibility = choice.dataset.visibility || "public";
     });
@@ -1268,406 +1515,243 @@ document.addEventListener("DOMContentLoaded", () => {
 
   on("#liveSetupForm", "submit", async (e) => {
     e.preventDefault();
-    if (!state.user?.id || !db) return;
+    if (!state.user?.id || !db) return toast("Não conectado ao banco de dados.");
 
     const title = $("#liveTitle")?.value.trim();
     const category = $("#liveCategory")?.value;
 
-    const { data, error } = await db.from("lives").insert({
-      host_id: state.user.id,
-      title,
-      category,
-      visibility: state.selectedVisibility,
-      status: "live",
-      viewer_count: 1
-    }).select("*, profiles(id, display_name, username, avatar_url, is_verified, is_developer)").single();
+    if (!title) return toast("Preencha o título da live.");
 
-    if (error) return toast(`Erro ao criar live: ${formatError(error)}`);
+    try {
+      const { data, error } = await db.from("lives").insert({
+        host_id: state.user.id,
+        title: title,
+        category: category,
+        status: "live",
+        viewers_count: 1
+      }).select("*, profiles(*)").single();
 
-    closeLiveModal();
-    toast("Transmissão iniciada!");
-    await fetchActiveLivesMap();
-    openLiveRoom(data);
+      if (error) throw error;
+
+      closeModal("liveSetupModal");
+      toast("Transmissão iniciada!");
+      await openLiveRoom(data, true);
+    } catch (err) {
+      toast(`Erro ao iniciar live: ${formatError(err)}`);
+    }
   });
 
-  async function openLiveRoom(live) {
+  async function openLiveRoom(live, isHost = false) {
     state.activeLive = live;
-    if ($("#liveRoomTitle")) $("#liveRoomTitle").textContent = live.title;
-    if ($("#liveRoomCategory")) $("#liveRoomCategory").textContent = (live.category || "bate-papo").toUpperCase();
-    if ($("#liveViewerCount")) $("#liveViewerCount").textContent = `${live.viewer_count || 1} espectadores`;
-    if ($("#liveHostButton")) $("#liveHostButton").textContent = live.profiles?.display_name || live.profiles?.username || "Criador";
+    const page = $("#pageLiveRoom");
+    if (!page) return;
 
-    const liveVideo = $("#liveVideo");
+    $("#liveRoomTitle").textContent = live.title || "Transmissão Ao Vivo";
+    $("#liveRoomCategory").textContent = live.category || "Geral";
+    $("#liveViewerCount").textContent = `${live.viewers_count || 1} espectadores`;
+
+    const hostName = live.profiles?.display_name || live.profiles?.username || "Criador";
+    $("#liveHostButton").innerHTML = `<span class="name-text">${escapeHTML(hostName)}</span>${getBadgesHTML(live.profiles)}`;
+
+    page.classList.add("active");
+
+    const video = $("#liveVideo");
     const placeholder = $("#liveCameraPlaceholder");
 
-    // ATIVAR CÂMERA DO APRESENTADOR
-    if (live.host_id === state.user?.id) {
+    if (isHost) {
       try {
-        state.mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        if (liveVideo) {
-          liveVideo.srcObject = state.mediaStream;
-          liveVideo.classList.remove("hidden");
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        state.mediaStream = stream;
+        if (video) {
+          video.srcObject = stream;
+          video.classList.remove("hidden");
         }
         if (placeholder) placeholder.classList.add("hidden");
-      } catch (cameraErr) {
-        console.warn("Acesso à câmera não concedido:", cameraErr);
+      } catch (mediaErr) {
         toast("Não foi possível acessar a câmera do dispositivo.");
-        if (liveVideo) liveVideo.classList.add("hidden");
-        if (placeholder) placeholder.classList.remove("hidden");
       }
     } else {
-      if (liveVideo) liveVideo.classList.add("hidden");
-      if (placeholder) placeholder.classList.remove("hidden");
+      if (video) video.classList.add("hidden");
+      if (placeholder) {
+        placeholder.classList.remove("hidden");
+        placeholder.querySelector("p").textContent = `Assistindo a transmissão de ${hostName}`;
+      }
     }
 
-    const chat = $("#liveChat");
-    if (chat) {
-      chat.innerHTML = `<div class="message"><small style="color:var(--gold);">Bate-papo ao vivo ativo. Seja respeitoso!</small></div>`;
-    }
-
-    navigateTo("pageLiveRoom");
+    loadLiveChat(live.id);
   }
 
-  function stopMediaStream() {
+  function closeLiveRoom() {
+    const page = $("#pageLiveRoom");
+    if (page) page.classList.remove("active");
+
     if (state.mediaStream) {
-      state.mediaStream.getTracks().forEach(track => track.stop());
+      state.mediaStream.getTracks().forEach(t => t.stop());
       state.mediaStream = null;
     }
-    const liveVideo = $("#liveVideo");
-    if (liveVideo) {
-      liveVideo.srcObject = null;
-      liveVideo.classList.add("hidden");
+
+    if (state.activeLive && db && state.activeLive.host_id === state.user?.id) {
+      db.from("lives").update({ status: "ended" }).eq("id", state.activeLive.id);
     }
-    const placeholder = $("#liveCameraPlaceholder");
-    if (placeholder) placeholder.classList.remove("hidden");
+
+    state.activeLive = null;
+    navigateTo("pageHome");
   }
 
-  on("#btnLeaveLive", "click", async () => {
-    stopMediaStream();
-    if (state.activeLive && state.activeLive.host_id === state.user?.id && db) {
-      await db.from("lives").update({ status: "ended" }).eq("id", state.activeLive.id);
-    }
-    state.activeLive = null;
-    await fetchActiveLivesMap();
-    navigateTo("pageHome");
-  });
+  on("#btnLeaveLive", "click", closeLiveRoom);
+
+  function loadLiveChat(liveId) {
+    const chatContainer = $("#liveChat");
+    if (!chatContainer) return;
+    chatContainer.innerHTML = `<div class="message"><p style="margin:0;">Bem-vindo ao chat ao vivo!</p></div>`;
+  }
 
   on("#liveMessageForm", "submit", (e) => {
     e.preventDefault();
     const input = $("#liveMessageInput");
-    const chat = $("#liveChat");
-    if (!input || !input.value.trim() || !chat) return;
+    const msg = input?.value.trim();
+    if (!msg) return;
 
-    const msg = document.createElement("div");
-    msg.className = "message mine";
-    msg.innerHTML = `<strong>${escapeHTML(state.profile?.display_name || "Você")}${getBadgesHTML(state.profile)}:</strong> ${escapeHTML(input.value.trim())}`;
-    chat.appendChild(msg);
-    chat.scrollTop = chat.scrollHeight;
-    input.value = "";
+    const chatContainer = $("#liveChat");
+    if (chatContainer) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "message mine";
+      msgDiv.innerHTML = `<strong>Você:</strong> ${escapeHTML(msg)}`;
+      chatContainer.appendChild(msgDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    if (input) input.value = "";
   });
 
-  /* ================= BATE-PAPO / CHAT DIRETO E REAL-TIME ================= */
-  async function loadChatMessages(targetUser) {
-    const messagesDiv = $("#messages");
-    if (!messagesDiv || !db) return;
-    
-    const { data, error } = await db.from("messages")
-      .select("*")
-      .or(`and(sender_id.eq.${state.user.id},receiver_id.eq.${targetUser.id}),and(sender_id.eq.${targetUser.id},receiver_id.eq.${state.user.id})`)
-      .order("created_at", { ascending: true });
+  /* ================= PRESENTES DA LIVE ================= */
+  on("#btnOpenGifts", "click", () => {
+    if (state.visitor) return toast("Cadastre-se para enviar presentes.");
+    openModal("giftsModal");
+  });
 
-    if (error || !data || data.length === 0) {
-      messagesDiv.innerHTML = `<div class="empty-state"><p>Início da conversa com @${escapeHTML(targetUser.username)}.</p></div>`;
-      return;
-    }
-    
-    messagesDiv.innerHTML = data.map(msg => {
-      const isMine = msg.sender_id === state.user.id;
-      return `<div class="message ${isMine ? 'mine' : ''}"><div>${escapeHTML(msg.content)}</div><small>${formatTimeAgo(msg.created_at)}</small></div>`;
-    }).join("");
-    
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  on("#closeGiftsModal", "click", () => closeModal("giftsModal"));
+
+  $$(".gift-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const cost = parseInt(item.dataset.cost, 10);
+      const emoji = item.dataset.emoji;
+
+      let currentBalance = parseInt(state.profile?.wallet_balance || 0, 10);
+      if (currentBalance < cost) {
+        closeModal("giftsModal");
+        return toast("Moedas insuficientes. Adicione moedas em sua carteira!");
+      }
+
+      updateWalletBalance(currentBalance - cost);
+      closeModal("giftsModal");
+      triggerGiftAnimation(emoji);
+      toast(`Você enviou um presente (${emoji}) de ${cost} Moedas!`);
+    });
+  });
+
+  function triggerGiftAnimation(emoji) {
+    const container = $("#liveAnimationContainer");
+    if (!container) return;
+
+    const animEl = document.createElement("div");
+    animEl.className = "gift-anim";
+    animEl.textContent = emoji;
+    container.appendChild(animEl);
+
+    setTimeout(() => animEl.remove(), 3000);
   }
 
+  /* ================= CHAT DE MENSAGENS DIRETAS ================= */
   async function loadChats() {
-    const chatList = $("#chatList");
-    if (!chatList) return;
+    const container = $("#chatList");
+    if (!container) return;
 
-    if (!db || state.visitor) {
-      chatList.innerHTML = `<div class="empty-state"><i class="fa-regular fa-comments"></i><p>Nenhuma conversa ativa.</p></div>`;
+    if (state.visitor) {
+      container.innerHTML = `<div class="empty-state"><i class="fa-regular fa-comments"></i><p>Cadastre-se para conversar.</p></div>`;
       return;
     }
 
-    const { data: msgs } = await db.from("messages")
-      .select("sender_id, receiver_id")
-      .or(`sender_id.eq.${state.user.id},receiver_id.eq.${state.user.id}`);
+    if (!db || !state.user?.id) return;
 
-    let userIds = new Set();
-    if (msgs) {
-      msgs.forEach(m => {
-        if (m.sender_id !== state.user.id) userIds.add(m.sender_id);
-        if (m.receiver_id !== state.user.id) userIds.add(m.receiver_id);
-      });
-    }
-
-    if (userIds.size === 0) {
-      chatList.innerHTML = `<div class="empty-state"><i class="fa-regular fa-comments"></i><p>Nenhuma conversa iniciada. Encontre amigos para conversar!</p></div>`;
-      return;
-    }
-
-    const { data: users } = await db.from("profiles")
-      .select("*, is_verified, is_developer")
-      .in("id", Array.from(userIds));
+    const { data: users } = await db.from("profiles").select("*").neq("id", state.user.id).limit(20);
 
     if (!users || users.length === 0) {
-      chatList.innerHTML = `<div class="empty-state"><i class="fa-regular fa-comments"></i><p>Nenhum usuário disponível para conversar.</p></div>`;
+      container.innerHTML = `<div class="empty-state"><p>Nenhum usuário encontrado para conversar.</p></div>`;
       return;
     }
 
-    chatList.innerHTML = users.map(u => `
-      <div class="chat-card" data-chat-user-id="${u.id}">
-        ${renderAvatarHTML(u, "small")}
-        <div class="grow">
-          <strong><span class="name-text">${escapeHTML(u.display_name || u.username)}</span>${getBadgesHTML(u)}</strong>
-          <small>@${escapeHTML(u.username)}</small>
+    container.innerHTML = users.map(u => {
+      const avatarHTML = renderAvatarHTML(u, "small");
+      return `
+        <div class="chat-card" data-user-id="${u.id}">
+          ${avatarHTML}
+          <div class="grow">
+            <strong><span class="name-text">${escapeHTML(u.display_name || u.username)}</span>${getBadgesHTML(u)}</strong>
+            <p style="margin:2px 0 0; color:var(--muted); font-size:0.8rem;">Clique para abrir a conversa</p>
+          </div>
         </div>
-        <i class="fa-solid fa-chevron-right" style="color: var(--muted);"></i>
-      </div>
-    `).join("");
+      `;
+    }).join("");
 
-    attachLiveAvatarListeners(chatList);
+    attachLiveAvatarListeners(container);
 
-    $$(".chat-card", chatList).forEach(card => {
+    $$(".chat-card", container).forEach(card => {
       card.addEventListener("click", () => {
-        const u = users.find(item => item.id === card.dataset.chatUserId);
-        if (u) openChatWithUser(u);
+        const found = users.find(u => u.id === card.dataset.userId);
+        if (found) openChatWithUser(found);
       });
     });
   }
 
-  function openChatWithUser(targetUser) {
-    state.activeChatUser = targetUser;
-
-    if ($("#chatRoomName")) {
-      $("#chatRoomName").innerHTML = `<span class="name-text">${escapeHTML(targetUser.display_name || targetUser.username)}</span> ${getBadgesHTML(targetUser)}`;
-    }
-    if ($("#chatRoomStatus")) {
-      $("#chatRoomStatus").textContent = "online";
-    }
-
-    const messagesDiv = $("#messages");
-    if (messagesDiv) {
-      messagesDiv.innerHTML = `<div class="empty-state"><p>Carregando conversa com @${escapeHTML(targetUser.username)}...</p></div>`;
+  function openChatWithUser(user) {
+    state.activeChatUser = user;
+    $("#chatRoomName").innerHTML = `<span class="name-text">${escapeHTML(user.display_name || user.username)}</span>${getBadgesHTML(user)}`;
+    
+    const messagesContainer = $("#messages");
+    if (messagesContainer) {
+      messagesContainer.innerHTML = `<div class="message"><p style="margin:0;">Início da conversa com @${escapeHTML(user.username)}</p></div>`;
     }
 
     navigateTo("pageChatRoom");
-    loadChatMessages(targetUser);
   }
 
-  on("#messageForm", "submit", async (e) => {
+  on("#messageForm", "submit", (e) => {
     e.preventDefault();
     const input = $("#messageInput");
-    const messagesDiv = $("#messages");
-    if (!input || !input.value.trim() || !messagesDiv || !state.activeChatUser) return;
+    const msg = input?.value.trim();
+    if (!msg) return;
 
-    const val = input.value.trim();
-    const emptyState = messagesDiv.querySelector(".empty-state");
-    if (emptyState) emptyState.remove();
-
-    const msgEl = document.createElement("div");
-    msgEl.className = "message mine";
-    msgEl.innerHTML = `<div>${escapeHTML(val)}</div><small>agora</small>`;
-    
-    messagesDiv.appendChild(msgEl);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    input.value = "";
-
-    if (db) {
-      await db.from("messages").insert({
-        sender_id: state.user.id,
-        receiver_id: state.activeChatUser.id,
-        content: val
-      });
+    const messagesContainer = $("#messages");
+    if (messagesContainer) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "message mine";
+      msgDiv.innerHTML = `${escapeHTML(msg)}<small>${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>`;
+      messagesContainer.appendChild(msgDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
+
+    if (input) input.value = "";
   });
 
-  /* ================= PESQUISA DE USUÁRIOS ================= */
-  on("#searchInput", "input", async (e) => {
-    const query = e.target.value.trim().toLowerCase();
-    const resultsContainer = $("#searchResults");
-    if (!resultsContainer) return;
-
-    if (!query) {
-      resultsContainer.innerHTML = "";
-      return;
-    }
-
+  /* ================= INICIALIZAÇÃO DA APLICAÇÃO ================= */
+  async function initApp() {
     if (!db) {
-      resultsContainer.innerHTML = `<p class="empty-state">Conecte o Supabase para pesquisar.</p>`;
-      return;
-    }
-
-    const { data: users, error } = await db.from("profiles").select("*, is_verified, is_developer").or(`username.ilike.%${query}%,display_name.ilike.%${query}%`).limit(10);
-
-    if (error || !users || users.length === 0) {
-      resultsContainer.innerHTML = `<p class="empty-state">Nenhum resultado para "${escapeHTML(query)}".</p>`;
-      return;
-    }
-
-    resultsContainer.innerHTML = users.map(user => `
-      <div class="result-card" data-user-id="${user.id}">
-        ${renderAvatarHTML(user, "")}
-        <div class="grow">
-          <strong><span class="name-text">${escapeHTML(user.display_name || user.username)}</span>${getBadgesHTML(user)}</strong>
-          <small>@${escapeHTML(user.username)}</small>
-        </div>
-        <i class="fa-solid fa-chevron-right" style="color: var(--muted);"></i>
-      </div>
-    `).join("");
-
-    attachLiveAvatarListeners(resultsContainer);
-
-    $$(".result-card", resultsContainer).forEach(card => {
-      card.addEventListener("click", () => {
-        const selectedUser = users.find(u => u.id === card.dataset.userId);
-        if (selectedUser) openUserProfile(selectedUser);
-      });
-    });
-  });
-
-  /* ================= STORIES (SUMIR EM 5 HORAS) ================= */
-  async function loadStories() {
-    const storiesContainer = $("#stories");
-    if (!storiesContainer) return;
-
-    const FIVE_HOURS_MS = 5 * 60 * 60 * 1000;
-    const nowMs = Date.now();
-
-    let rawStories = [];
-
-    if (db) {
-      const { data } = await db.from("stories")
-        .select("*, profiles(id, display_name, username, avatar_url, is_verified, is_developer)")
-        .order("created_at", { ascending: false });
-      rawStories = data || [];
-    }
-
-    state.stories = rawStories.filter(story => {
-      if (!story.created_at) return true;
-      const createdAtMs = new Date(story.created_at).getTime();
-      return (nowMs - createdAtMs) <= FIVE_HOURS_MS;
-    });
-
-    let html = `
-      <button class="story-item" id="btnAddStory" type="button">
-        <div class="story-avatar"><i class="fa-solid fa-plus"></i></div>
-        <span class="story-name">Seu story</span>
-        <span class="story-time-tag">Novo</span>
-      </button>
-    `;
-
-    state.stories.forEach((story, idx) => {
-      const author = story.profiles || { username: "user" };
-      const avatarHTML = renderAvatarHTML(author, "");
-      const timeAgo = formatTimeAgo(story.created_at);
-
-      html += `
-        <button class="story-item" data-story-index="${idx}" type="button">
-          ${avatarHTML}
-          <span class="story-name">@${escapeHTML(author.username)}</span>
-          <span class="story-time-tag">${timeAgo}</span>
-        </button>
-      `;
-    });
-
-    storiesContainer.innerHTML = html;
-    attachLiveAvatarListeners(storiesContainer);
-
-    on("#btnAddStory", "click", () => {
-      if (state.visitor) return toast("Entre na conta para publicar stories.");
-      openCreatePostModal();
-    });
-
-    $$("[data-story-index]", storiesContainer).forEach(btn => {
-      btn.addEventListener("click", () => openStory(parseInt(btn.dataset.storyIndex, 10)));
-    });
-  }
-
-  function openStory(index) {
-    const story = state.stories[index];
-    if (!story) return;
-
-    state.storyIndex = index;
-    const viewer = $("#storyViewer");
-    const img = $("#storyImage");
-    const author = $("#storyAuthor");
-    const bar = $("#storyProgressBar");
-
-    if (!viewer || !img) return;
-
-    img.src = story.image_url || "https://via.placeholder.com/400x700/18181f/ffffff?text=Pijama+Party";
-    if (author) {
-      const storyUser = story.profiles || { username: "usuario" };
-      author.innerHTML = `@${escapeHTML(storyUser.username)}${getBadgesHTML(storyUser)} <small style="font-weight:normal; font-size:0.8em; opacity:0.8;">• ${formatTimeAgo(story.created_at)}</small>`;
-    }
-
-    viewer.classList.remove("hidden");
-
-    if (bar) bar.style.width = "0%";
-    let progress = 0;
-    clearInterval(state.storyProgressInterval);
-    state.storyProgressInterval = setInterval(() => {
-      progress += 2;
-      if (bar) bar.style.width = `${progress}%`;
-      if (progress >= 100) {
-        clearInterval(state.storyProgressInterval);
-        closeStory();
-      }
-    }, 100);
-  }
-
-  function closeStory() {
-    clearInterval(state.storyProgressInterval);
-    $("#storyViewer")?.classList.add("hidden");
-  }
-
-  on("#closeStoryViewer", "click", closeStory);
-  on("#storyNext", "click", () => {
-    if (state.storyIndex + 1 < state.stories.length) {
-      openStory(state.storyIndex + 1);
-    } else {
-      closeStory();
-    }
-  });
-
-  /* ================= NOTIFICAÇÕES ================= */
-  async function loadNotifications() {
-    const list = $("#notificationsList");
-    if (list) {
-      list.innerHTML = `<div class="empty-state"><i class="fa-regular fa-bell-slash"></i><p>Nenhuma notificação por enquanto.</p></div>`;
-    }
-  }
-
-  /* ================= SESSÃO INICIAL ================= */
-  async function initSession() {
-    if (!db) {
-      toast("Serviço Supabase não inicializado.");
+      console.warn("Supabase não configurado.");
       return;
     }
 
     const { data } = await db.auth.getSession();
-
-    if (data?.session && data.session.user) {
+    if (data?.session) {
       state.session = data.session;
       state.user = data.session.user;
       state.visitor = false;
       await fetchProfile();
-      updateProfileUI();
       enterApp();
     } else {
-      leaveApp();
+      state.visitor = true;
     }
   }
 
-  initSession();
+  initApp();
 });
