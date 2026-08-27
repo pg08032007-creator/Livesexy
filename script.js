@@ -256,22 +256,25 @@ document.addEventListener("click", async (e) => {
     return isUserDeveloper(state.profile || state.user);
   }
 
+// NOVO CÓDIGO
   function getBadgesHTML(user) {
     if (!user) return "";
     let html = "";
     
-    const verified = isUserVerified(user);
-    const developer = isUserDeveloper(user);
+    // Verifica atributos do banco e verificações locais universais
+    const isVerified = Boolean(user.is_verified || isUserVerified(user));
+    const isDeveloper = Boolean(user.is_developer || isUserDeveloper(user));
 
-    if (verified) {
+    if (isVerified) {
       html += `<i class="fa-solid fa-circle-check badge-verified" title="Verificado"></i>`;
     }
-    if (developer) {
+    if (isDeveloper) {
       html += `<i class="fa-solid fa-code badge-developer" title="Desenvolvedor"></i>`;
     }
 
     return html ? `<span class="badges-container">${html}</span>` : "";
   }
+
 
   /* ================= CARTEIRA, SALDO E SISTEMA PIX ================= */
   async function updateWalletBalance(newBalance, targetUserId = null) {
@@ -1801,12 +1804,12 @@ document.addEventListener("click", async (e) => {
     });
   });
 
-  on("#liveSetupForm", "submit", async (e) => {
+   on("#liveSetupForm", "submit", async (e) => {
     e.preventDefault();
     if (!state.user?.id || !db) return toast("Não conectado ao banco de dados.");
 
     const title = $("#liveTitle")?.value.trim();
-    const category = $("#liveCategory")?.value;
+    const category = "Geral";
 
     if (!title) return toast("Preencha o título da live.");
 
@@ -1833,64 +1836,101 @@ document.addEventListener("click", async (e) => {
     }
   });
 
-  async function openLiveRoom(live, isHost = false) {
-    state.activeLive = live;
-    const page = $("#pageLiveRoom");
-    if (!page) return;
+    // Abertura da sala de transmissão com persistência dos controles do host
+  async function openLiveRoom(live) {
+    if (!live) return;
+    
+    // Armazena a live ativa globalmente
+    window.activeLive = live;
+    if (window.state) window.state.activeLive = live;
 
-    $("#liveRoomTitle").textContent = live.title || "Transmissão Ao Vivo";
-    $("#liveRoomCategory").textContent = live.category || "Geral";
-    $("#liveViewerCount").textContent = `${live.viewers_count || 1} espectadores`;
+    const liveRoom = document.querySelector("#pageLiveRoom");
+    const liveTitle = document.querySelector("#liveRoomTitle");
+    const liveViewers = document.querySelector("#liveViewerCount");
+    const btnEndLive = document.querySelector("#btnEndLive");
+    const liveVideo = document.querySelector("#liveVideo");
+    const cameraPlaceholder = document.querySelector("#liveCameraPlaceholder");
 
-    const hostName = live.profiles?.display_name || live.profiles?.username || "Criador";
-    $("#liveHostButton").innerHTML = `<span class="name-text">${escapeHTML(hostName)}</span>${getBadgesHTML(live.profiles)}`;
+    // Exibe a tela da live
+    if (liveRoom) liveRoom.classList.add("active");
+    if (liveTitle) liveTitle.textContent = live.title || "Transmissão Ao Vivo";
+    if (liveViewers) liveViewers.textContent = `${live.viewers_count || 0} espectadores`;
 
-    page.classList.add("active");
+    // Obtém o usuário atual logado no sistema
+    const currentUser = window.state?.user || window.currentUser;
 
-    const video = $("#liveVideo");
-    const placeholder = $("#liveCameraPlaceholder");
+    // COMPARAÇÃO RIGOROSA: Verifica se o ID do usuário é igual ao ID do criador da live
+    const isHost = currentUser && String(currentUser.id) === String(live.host_id);
 
     if (isHost) {
+      // 1. Força a exibição do botão de encerrar
+      if (btnEndLive) {
+        btnEndLive.classList.remove("hidden");
+        btnEndLive.style.display = "flex"; // Garante visibilidade via CSS
+      }
+
+      // 2. Tenta reconectar ou manter a câmera/microfone se for o host
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        state.mediaStream = stream;
-        if (video) {
-          video.srcObject = stream;
-          video.classList.remove("hidden");
+        if (!window.currentMediaStream) {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          window.currentMediaStream = stream;
+          if (window.state) window.state.mediaStream = stream;
         }
-        if (placeholder) placeholder.classList.add("hidden");
-      } catch (mediaErr) {
-        toast("Não foi possível acessar a câmera do dispositivo.");
+        
+        if (liveVideo) {
+          liveVideo.srcObject = window.currentMediaStream;
+          liveVideo.classList.remove("hidden");
+        }
+        if (cameraPlaceholder) cameraPlaceholder.classList.add("hidden");
+      } catch (err) {
+        console.warn("Aviso: Não foi possível reativar a câmera ao reentrar na live:", err);
       }
+
     } else {
-      if (video) video.classList.add("hidden");
-      if (placeholder) {
-        placeholder.classList.remove("hidden");
-        placeholder.querySelector("p").textContent = `Assistindo a transmissão de ${hostName}`;
+      // Oculta botão de encerramento para espectadores comuns
+      if (btnEndLive) {
+        btnEndLive.classList.add("hidden");
+        btnEndLive.style.display = "none";
       }
+      if (liveVideo) liveVideo.classList.add("hidden");
+      if (cameraPlaceholder) cameraPlaceholder.classList.remove("hidden");
     }
-
-    loadLiveChat(live.id);
   }
 
-  function closeLiveRoom() {
-    const page = $("#pageLiveRoom");
-    if (page) page.classList.remove("active");
 
-    if (state.mediaStream) {
-      state.mediaStream.getTracks().forEach(t => t.stop());
-      state.mediaStream = null;
+ async function closeLiveRoom() {
+  // Se o usuário atual for o host e houver um ID de live ativo, atualiza no banco
+  if (window.isHost && window.currentLiveId) {
+    try {
+      await supabase
+        .from("lives")
+        .update({ status: "ended" })
+        .eq("id", window.currentLiveId);
+    } catch (error) {
+      console.error("Erro ao encerrar live no banco:", error);
     }
-
-    if (state.activeLive && db && state.activeLive.host_id === state.user?.id) {
-      db.from("lives").update({ status: "ended" }).eq("id", state.activeLive.id);
-    }
-
-    state.activeLive = null;
-    navigateTo("pageHome");
   }
 
-  on("#btnLeaveLive", "click", closeLiveRoom);
+  // Limpa variáveis de controle locais
+  window.isHost = false;
+  window.currentLiveId = null;
+
+  // Restante do seu código original que esconde a tela de live e para os vídeos/câmera
+  const liveRoom = $("#liveRoom"); // ou o seletor da sua tela cheia de live
+  if (liveRoom) liveRoom.classList.add("hidden");
+  
+  // Para a câmera do host se estiver ativa
+  if (window.localStream) {
+    window.localStream.getTracks().forEach(track => track.stop());
+    window.localStream = null;
+  }
+  
+  // Recarrega a lista de lives para atualizar a aba "Em Alta"
+  if (typeof loadTrending === "function") {
+    loadTrending();
+  }
+}
+
 
   function loadLiveChat(liveId) {
     const chatContainer = $("#liveChat");
@@ -1900,21 +1940,21 @@ document.addEventListener("click", async (e) => {
 
   on("#liveMessageForm", "submit", (e) => {
     e.preventDefault();
-    const input = $("#liveMessageInput");
-    const msg = input?.value.trim();
-    if (!msg) return;
+const input = $("#liveMessageInput");
+const msg = input?.value.trim();
+if (!msg) return;
 
-    const chatContainer = $("#liveChat");
-    if (chatContainer) {
-      const msgDiv = document.createElement("div");
-      msgDiv.className = "message mine";
-      msgDiv.innerHTML = `<strong>Você:</strong> ${escapeHTML(msg)}`;
-      chatContainer.appendChild(msgDiv);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
+const chatContainer = $("#liveChat");
+if (chatContainer) {
+  const msgDiv = document.createElement("div");
+  msgDiv.className = "message mine";
+  msgDiv.innerHTML = `<strong>Você:</strong> ${escapeHTML(msg)}`;
+  chatContainer.appendChild(msgDiv);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+}
 
-    if (input) input.value = "";
-  });
+if (input) input.value = "";
+});
 
   /* ================= PRESENTES DA LIVE ================= */
   on("#btnOpenGifts", "click", () => {
@@ -2289,3 +2329,213 @@ document.addEventListener("click", async (e) => {
 
   initApp();
 });
+
+    /* ================= SISTEMA DE LIVES & TIKTOK FEED ================= */
+
+  // Variáveis globais para controle de estado das transmissões
+  window.activeLive = window.activeLive || null;
+  window.currentMediaStream = window.currentMediaStream || null;
+  window.activeLivesList = window.activeLivesList || [];
+
+  // Atualiza e renderiza a lista de transmissões no feed "Em Alta" (Estilo TikTok)
+  async function loadTrending() {
+    const container = document.querySelector("#trendingList");
+    if (!container) return;
+
+    if (typeof fetchActiveLivesMap === "function") {
+      await fetchActiveLivesMap();
+    }
+
+    const lives = window.state?.lives || window.activeLivesList || [];
+
+    if (lives.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <i class="fa-solid fa-video-slash"></i>
+          <p>Nenhuma transmissão ao vivo no momento.</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = lives.map(live => {
+      const host = live.profiles || { username: "criador", display_name: "Criador" };
+      return `
+        <div class="tiktok-card" data-live-id="${live.id}">
+          <div class="tiktok-bg-placeholder">
+            <i class="fa-solid fa-video"></i>
+          </div>
+          <div class="tiktok-overlay">
+            <div class="tiktok-top">
+              <span class="tiktok-live-tag"><i class="fa-solid fa-circle"></i> AO VIVO</span>
+              <span class="tiktok-viewers"><i class="fa-solid fa-eye"></i> ${live.viewers_count || 0}</span>
+            </div>
+            <div class="tiktok-bottom">
+              <div class="tiktok-info">
+                <div class="tiktok-user">
+                  ${typeof renderAvatarHTML === "function" ? renderAvatarHTML(host, "small") : ""}
+                  <strong>@${typeof escapeHTML === "function" ? escapeHTML(host.username) : host.username} ${getBadgesHTML(host)}</strong>
+                </div>
+                <h3 class="tiktok-title">${typeof escapeHTML === "function" ? escapeHTML(live.title || "Transmissão Ao Vivo") : live.title}</h3>
+              </div>
+              <div class="tiktok-actions">
+                <button class="tiktok-btn btn-watch-live" data-live-id="${live.id}" title="Assistir">
+                  <i class="fa-solid fa-play"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    container.querySelectorAll(".btn-watch-live").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liveId = btn.dataset.liveId;
+        const live = lives.find(l => l.id === liveId);
+        const currentUser = window.state?.user || window.currentUser;
+        if (live) {
+          if (currentUser && live.host_id === currentUser.id) {
+            openLiveRoom(live);
+          } else if (typeof attemptOpenLive === "function") {
+            attemptOpenLive(live.host_id);
+          }
+        }
+      });
+    });
+
+    if (typeof attachLiveAvatarListeners === "function") {
+      attachLiveAvatarListeners(container);
+    }
+  }
+
+  // Abertura da sala de transmissão ao vivo
+  async function openLiveRoom(live) {
+    if (!live) return;
+    window.activeLive = live;
+    if (window.state) window.state.activeLive = live;
+
+    const liveRoom = document.querySelector("#pageLiveRoom");
+    const liveTitle = document.querySelector("#liveRoomTitle");
+    const liveViewers = document.querySelector("#liveViewerCount");
+    const btnEndLive = document.querySelector("#btnEndLive");
+    const liveVideo = document.querySelector("#liveVideo");
+    const cameraPlaceholder = document.querySelector("#liveCameraPlaceholder");
+
+    if (liveRoom) liveRoom.classList.add("active");
+    if (liveTitle) liveTitle.textContent = live.title || "Transmissão Ao Vivo";
+    if (liveViewers) liveViewers.textContent = `${live.viewers_count || 0} espectadores`;
+
+    const currentUser = window.state?.user || window.currentUser;
+    const isHost = currentUser && currentUser.id === live.host_id;
+
+    if (isHost) {
+      if (btnEndLive) btnEndLive.classList.remove("hidden");
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        window.currentMediaStream = stream;
+        if (window.state) window.state.mediaStream = stream;
+        if (liveVideo) {
+          liveVideo.srcObject = stream;
+          liveVideo.classList.remove("hidden");
+        }
+        if (cameraPlaceholder) cameraPlaceholder.classList.add("hidden");
+      } catch (err) {
+        if (typeof toast === "function") toast("Não foi possível acessar a câmera ou microfone.");
+      }
+    } else {
+      if (btnEndLive) btnEndLive.classList.add("hidden");
+      if (liveVideo) liveVideo.classList.add("hidden");
+      if (cameraPlaceholder) cameraPlaceholder.classList.remove("hidden");
+    }
+  }
+
+  // Encerramento da transmissão ao vivo pelo criador
+  // Encerramento garantido da transmissão ao vivo
+  async function endActiveLive() {
+    const currentLive = window.activeLive || window.state?.activeLive;
+    const currentUser = window.state?.user || window.currentUser;
+
+    // 1. Desliga os canais de mídia (Câmera e Microfone)
+    const stream = window.currentMediaStream || window.state?.mediaStream;
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      window.currentMediaStream = null;
+      if (window.state) window.state.mediaStream = null;
+    }
+    
+  // Adicione isso ANTES de inserir a nova live no banco de dados:
+  if (typeof db !== "undefined" && db && currentUser?.id) {
+    // Cancela qualquer live antiga que tenha ficado presa como "live" para o usuário atual
+    await db.from("lives")
+      .update({ status: "ended" })
+      .eq("host_id", currentUser.id)
+      .eq("status", "live");
+  }
+
+    // 2. Atualiza o banco de dados (Supabase)
+    if (typeof db !== "undefined" && db) {
+      try {
+        if (currentLive?.id) {
+          // Finaliza a live específica
+          await db.from("lives").update({ status: "ended" }).eq("id", currentLive.id);
+        }
+        
+        // SEGURANÇA EXTRA: Encerra qualquer outra live pendente deste mesmo usuário
+        if (currentUser?.id) {
+          await db.from("lives").update({ status: "ended" }).eq("host_id", currentUser.id).eq("status", "live");
+        }
+      } catch (err) {
+        console.error("Erro ao atualizar status da live no banco:", err);
+      }
+    }
+
+    // 3. Reseta a interface visual
+    const liveRoom = document.querySelector("#pageLiveRoom");
+    if (liveRoom) liveRoom.classList.remove("active");
+
+    window.activeLive = null;
+    if (window.state) window.state.activeLive = null;
+
+    if (typeof toast === "function") toast("Transmissão encerrada com sucesso!");
+    if (typeof navigateTo === "function") navigateTo("pageHome");
+
+    // 4. Recarrega a lista de transmissões "Em Alta" para remover os cards encerrados
+    if (typeof loadTrending === "function") loadTrending();
+  }
+
+
+  // Evento do botão "X" (Sair/Fechar Live)
+  const btnLeaveLive = document.querySelector("#btnLeaveLive");
+  if (btnLeaveLive) {
+    btnLeaveLive.addEventListener("click", () => {
+      const currentLive = window.activeLive || window.state?.activeLive;
+      const currentUser = window.state?.user || window.currentUser;
+
+      if (currentLive && currentUser && currentUser.id === currentLive.host_id) {
+        if (confirm("Você é o apresentador. Deseja realmente encerrar a live para todos?")) {
+          endActiveLive();
+        }
+      } else {
+        const stream = window.currentMediaStream || window.state?.mediaStream;
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          window.currentMediaStream = null;
+          if (window.state) window.state.mediaStream = null;
+        }
+        const liveRoom = document.querySelector("#pageLiveRoom");
+        if (liveRoom) liveRoom.classList.remove("active");
+        window.activeLive = null;
+        if (window.state) window.state.activeLive = null;
+      }
+    });
+  }
+
+  // Evento do botão "Encerrar Transmissão"
+  const btnEndLive = document.querySelector("#btnEndLive");
+  if (btnEndLive) {
+    btnEndLive.addEventListener("click", () => {
+      if (confirm("Tem certeza de que deseja encerrar a transmissão?")) {
+        endActiveLive();
+      }
+    });
+  }
