@@ -1113,3 +1113,102 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); box-sh
 .toast.show {
   opacity: 1; transform: translate(-50%, 0); pointer-events: auto;
 }
+
+/* ================= TIKTOK FEED STYLE ================= */
+.tiktok-feed {
+  height: calc(100vh - var(--nav-height) - 68px); 
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  display: flex;
+  flex-direction: column;
+}
+.tiktok-feed::-webkit-scrollbar {
+  display: none; /* Esconde a barra de rolagem nativa */
+}
+.tiktok-card {
+  flex: 0 0 100%;
+  height: 100%;
+  width: 100%;
+  scroll-snap-align: start;
+  position: relative;
+  background-color: #000;
+  overflow: hidden;
+}
+.tiktok-bg-placeholder, .tiktok-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+}
+.tiktok-bg-placeholder {
+  display: grid;
+  place-items: center;
+  font-size: 4rem;
+  color: var(--surface);
+}
+.tiktok-overlay {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 40%, rgba(0,0,0,0.8) 100%);
+  z-index: 2;
+}
+.tiktok-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tiktok-live-tag {
+  background: var(--primary);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: pulseLive 2s infinite;
+}
+.tiktok-viewers {
+  background: rgba(0,0,0,0.5);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+.tiktok-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.tiktok-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.tiktok-title {
+  margin: 0;
+  font-size: 1.2rem;
+}
+.tiktok-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.tiktok-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  font-size: 1.2rem;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 15px rgba(255, 42, 95, 0.4);
+}
+@keyframes pulseLive {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
