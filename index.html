@@ -371,15 +371,7 @@
           Título da Live
           <input type="text" id="liveTitle" placeholder="Ex: Bate-papo da noite!" required>
         </label>
-        <label>
-          Categoria
-          <select id="liveCategory">
-            <option value="bate-papo">Bate-papo</option>
-            <option value="jogos">Jogos</option>
-            <option value="musica">Música</option>
-            <option value="arte">Arte</option>
-          </select>
-        </label>
+        
         <label>Visibilidade</label>
         <div class="choice-grid">
           <div class="choice active" data-visibility="public">
@@ -515,8 +507,13 @@
   <section class="page live-room" id="pageLiveRoom">
     <div id="liveAnimationContainer" class="live-animation-container"></div>
     <div class="live-stage">
-      <button class="floating-back" id="btnLeaveLive" aria-label="Sair da live"><i class="fa-solid fa-xmark"></i></button>
+<!-- NOVO CÓDIGO -->
+      <button class="floating-back" id="btnLeaveLive" aria-label="Sair da live" title="Fechar / Sair"><i class="fa-solid fa-xmark"></i></button>
       
+      <button class="btn danger compact hidden" id="btnEndLive" style="position: absolute; top: 16px; right: 16px; z-index: 100; border-radius: 20px;">
+        <i class="fa-solid fa-power-off"></i> Encerrar Transmissão
+      </button>
+
       <div class="live-top-info">
         <div class="live-info-panel">
           <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
